@@ -25,14 +25,13 @@
       });
 
       overlays.default = final: prev: {
-        ambxst = ambxst.packages.${final.system}.default;
+        ambxst = ambxst.packages.${final.stdenv.hostPlatform.system}.default;
       };
 
       nixosModules.default = { pkgs, lib, ... }:
         {
           imports = [ ambxst.nixosModules.default ];
           programs.ambxst.enable = lib.mkDefault true;
-          programs.ambxst.package = lib.mkDefault self.packages.${pkgs.system}.default;
         };
       nixosModules.ambxst = self.nixosModules.default;
 
