@@ -122,6 +122,19 @@
               fi
               install -m 0644 "$pinned_file.tmp" "$pinned_file"
               rm -f "$pinned_file.tmp"
+
+              wallpaper_dir="${config.home.homeDirectory}/Wallpapers"
+              wallpaper_file="${config.xdg.cacheHome}/ambxst/wallpapers.json"
+              install -d "$(dirname "$wallpaper_file")"
+              if [ -s "$wallpaper_file" ] && jq -e . "$wallpaper_file" >/dev/null 2>&1; then
+                jq --arg path "$wallpaper_dir" '.wallPath = $path' "$wallpaper_file" > "$wallpaper_file.tmp"
+              else
+                jq -n --arg path "$wallpaper_dir" \
+                  '{currentWall:"", wallPath:$path, matugenScheme:"scheme-tonal-spot", activeColorPreset:"", tintEnabled:false, perScreenWallpapers:{}}' \
+                  > "$wallpaper_file.tmp"
+              fi
+              install -m 0644 "$wallpaper_file.tmp" "$wallpaper_file"
+              rm -f "$wallpaper_file.tmp"
             fi
           '';
           systemd.user.services.livara-ambxst-palette-bridge = {
