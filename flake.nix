@@ -2,10 +2,11 @@
   description = "Livara Ambxst shell integration for Niri and NixOS";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/20b1ddd1aa5ace70c9468305030aa4f9ef79671b";
     ambxst = {
       url = "github:Axenide/Ambxst/7f0ac49b82497c6d273f7cd7e49d302904f440ed";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.axctl.url = "github:Axenide/axctl/dedcaa6769a577b0a0ea767631f5f4ec317fff59";
     };
     shell-conf = {
       url = "github:Joaoferraz-byte/shell-conf/807cfb5fe0f3ef9e1db3f16a02cf085021edc1b3";
