@@ -27,6 +27,14 @@
         ambxst = ambxst.packages.${final.system}.default;
       };
 
+      nixosModules.default = { pkgs, lib, ... }:
+        {
+          imports = [ ambxst.nixosModules.default ];
+          programs.ambxst.enable = lib.mkDefault true;
+          programs.ambxst.package = lib.mkDefault self.packages.${pkgs.system}.default;
+        };
+      nixosModules.ambxst = self.nixosModules.default;
+
       homeModules.default = { config, lib, pkgs, ... }:
         let
           ambxstPackage = ambxst.packages.${pkgs.stdenv.hostPlatform.system}.default;

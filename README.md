@@ -35,7 +35,7 @@ A ponte é deliberadamente limitada a cores semânticas estáveis. Valores ausen
 
 ## Ativação
 
-Importe `homeModules.default` em um perfil Home Manager que substitua o módulo Noctalia. Não importe os dois módulos na mesma sessão. O host continua responsável por Niri e pelos serviços de sistema. Em NixOS, adicione o grupo `input` ao usuário quando a versão upstream exigir o monitoramento de teclas de modificador.
+O flake expõe `packages.default`, `nixosModules.default` e `homeModules.default`. Importe `homeModules.default` em um perfil Home Manager que substitua o módulo Noctalia, ou `nixosModules.default` em uma composição NixOS que escolha Ambxst como shell. Não importe os dois módulos na mesma sessão. O host continua responsável por Niri e pelos serviços de sistema. Em NixOS, adicione o grupo `input` ao usuário quando a versão upstream exigir o monitoramento de teclas de modificador.
 
 ## Validação
 
