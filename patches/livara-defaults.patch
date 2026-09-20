@@ -1,7 +1,7 @@
 diff --git a/assets/presets/Ambxst Default/theme.json b/assets/presets/Ambxst Default/theme.json
 index 5192f49..043bd82 100644
---- a/assets/presets/Ambxst Default/theme.json
-+++ b/assets/presets/Ambxst Default/theme.json
+--- "a/assets/presets/Ambxst Default/theme.json"
++++ "b/assets/presets/Ambxst Default/theme.json"
 @@ -37,7 +37,7 @@
              0
          ],
