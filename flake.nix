@@ -116,6 +116,13 @@
                 printf '%s\n' 'Ambxst Default' > "$ambxst_preset_state"
               fi
 
+              workspaces_file="$ambxst_config_files/workspaces.json"
+              if [ -s "$workspaces_file" ] && jq -e . "$workspaces_file" >/dev/null 2>&1; then
+                jq '.showAppIcons = false | .shown = 3' "$workspaces_file" > "$workspaces_file.tmp"
+                install -m 0644 "$workspaces_file.tmp" "$workspaces_file"
+                rm -f "$workspaces_file.tmp"
+              fi
+
               dock_dir="${config.xdg.configHome}/ambxst/config"
               dock_file="$dock_dir/dock.json"
               pinned_dir="${config.xdg.dataHome}/ambxst"

@@ -38,7 +38,7 @@ diff --git a/modules/bar/systray/SysTray.qml b/modules/bar/systray/SysTray.qml
 index 83464b5..94e4495 100644
 --- a/modules/bar/systray/SysTray.qml
 +++ b/modules/bar/systray/SysTray.qml
-@@ -8,8 +8,26 @@ import qs.modules.components
+@@ -8,8 +8,29 @@ import qs.modules.components
      variant: "bg"
      id: root
 
@@ -54,17 +54,20 @@ index 83464b5..94e4495 100644
 +        "bluetooth",
 +        "easyeffects",
 +        "easy-effects",
++        "easy effects",
++        "easy_effects",
++        "gapplication-service",
 +        "pasystray",
 +        "volumeicon",
 +        "wireplumber"
 +    ]
 +    function isShellManaged(item) {
-+        const identity = ((item.id || "") + " " + (item.title || "") + " " + (item.tooltipTitle || "")).toLowerCase();
++        const identity = ((item.id || "") + " " + (item.title || "") + " " + (item.tooltipTitle || "") + " " + (item.icon || "")).toLowerCase();
 +        return hiddenItemTokens.some(token => identity.includes(token));
 +    }
 +    readonly property var visibleItems: SystemTray.items.values.filter(item => !isShellManaged(item))
 +    visible: visibleItems.length > 0
-
+ 
      topLeftRadius: root.vertical ? root.startRadius : root.startRadius
      topRightRadius: root.vertical ? root.startRadius : root.endRadius
 @@ -26,7 +44,7 @@ import qs.modules.components
@@ -241,7 +244,7 @@ diff --git a/modules/bar/workspaces/Workspaces.qml b/modules/bar/workspaces/Work
                      }
 
                      Text {
-@@ -659,44 +627,14 @@
+@@ -659,45 +627,15 @@
                          height: workspaceButtonWidth
                          opacity: !Config.workspaces.showAppIcons ? 0 : (workspaceButtonBackgroundVert.focusedWindow && !Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? 1 : workspaceButtonBackgroundVert.focusedWindow ? workspaceIconOpacityShrinked : 0
                          visible: opacity > 0
@@ -293,3 +296,17 @@ diff --git a/modules/bar/workspaces/Workspaces.qml b/modules/bar/workspaces/Work
                          }
 
                          Tinted {
+
+diff --git "a/assets/presets/Ambxst Default/workspaces.json" "b/assets/presets/Ambxst Default/workspaces.json"
+--- "a/assets/presets/Ambxst Default/workspaces.json"
++++ "b/assets/presets/Ambxst Default/workspaces.json"
+@@ -1,7 +1,7 @@
+ {
+     "alwaysShowNumbers": false,
+     "dynamic": false,
+-    "showAppIcons": true,
++    "showAppIcons": false,
+     "showNumbers": false,
+-    "shown": 10
++    "shown": 3
+ }
