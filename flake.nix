@@ -44,11 +44,16 @@
               vendorHash = "sha256-4PUs37IRhUPtuXi4KU8wOUErIkVlcnaoj94zBDBsMdk=";
             };
           };
-          ambxstPackage = import "${ambxst}/nix/packages" {
+          ambxstPatched = pkgs.applyPatches {
+            name = "ambxst-livara-source";
+            src = ambxst;
+            patches = [ ./patches/livara-defaults.patch ];
+          };
+          ambxstPackage = import "${ambxstPatched}/nix/packages" {
             inherit pkgs lib system;
             axctl = axctlFixed;
-            self = ambxst.outPath;
-            version = lib.removeSuffix "\n" (builtins.readFile "${ambxst}/version");
+            self = ambxstPatched;
+            version = lib.removeSuffix "\n" (builtins.readFile "${ambxstPatched}/version");
           };
         in {
           default = ambxstPackage;
@@ -127,10 +132,10 @@
               wallpaper_file="${config.xdg.cacheHome}/ambxst/wallpapers.json"
               install -d "$(dirname "$wallpaper_file")"
               if [ -s "$wallpaper_file" ] && jq -e . "$wallpaper_file" >/dev/null 2>&1; then
-                jq --arg path "$wallpaper_dir" '.wallPath = $path' "$wallpaper_file" > "$wallpaper_file.tmp"
+                jq --arg path "$wallpaper_dir" '.wallPath = $path | .tintEnabled = true | .activeColorPreset = ""' "$wallpaper_file" > "$wallpaper_file.tmp"
               else
                 jq -n --arg path "$wallpaper_dir" \
-                  '{currentWall:"", wallPath:$path, matugenScheme:"scheme-tonal-spot", activeColorPreset:"", tintEnabled:false, perScreenWallpapers:{}}' \
+                  '{currentWall:"", wallPath:$path, matugenScheme:"scheme-tonal-spot", activeColorPreset:"", tintEnabled:true, perScreenWallpapers:{}}' \
                   > "$wallpaper_file.tmp"
               fi
               install -m 0644 "$wallpaper_file.tmp" "$wallpaper_file"

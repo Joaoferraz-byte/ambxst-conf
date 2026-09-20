@@ -1,0 +1,194 @@
+diff --git a/assets/presets/Ambxst Default/theme.json b/assets/presets/Ambxst Default/theme.json
+index 5192f49..043bd82 100644
+--- a/assets/presets/Ambxst Default/theme.json	
++++ b/assets/presets/Ambxst Default/theme.json	
+@@ -37,7 +37,7 @@
+             0
+         ],
+         "itemColor": "overBackground",
+-        "opacity": 1
++        "opacity": 0.88
+     },
+     "srPopup": {
+         "label": "Popup",
+@@ -62,7 +62,7 @@
+             2
+         ],
+         "itemColor": "overBackground",
+-        "opacity": 1
++        "opacity": 0.92
+     },
+     "srInternalBg": {
+         "label": "Internal BG",
+@@ -137,7 +137,7 @@
+             0
+         ],
+         "itemColor": "overBackground",
+-        "opacity": 1
++        "opacity": 0.9
+     },
+     "srCommon": {
+         "label": "Common",
+@@ -489,4 +489,4 @@
+         "itemColor": "error",
+         "opacity": 1
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/modules/bar/BarContent.qml b/modules/bar/BarContent.qml
+index 9d43848..0fa1800 100644
+--- a/modules/bar/BarContent.qml
++++ b/modules/bar/BarContent.qml
+@@ -392,14 +392,6 @@ Item {
+                             endRadius: root.innerRadius
+                         }
+ 
+-                        LayoutSelectorButton {
+-                            id: layoutSelectorButton
+-                            bar: root
+-                            layerEnabled: root.shadowsEnabled
+-                            startRadius: root.innerRadius
+-                            endRadius: (root.pinButtonVisible) ? root.innerRadius : (root.dockAtStart ? root.innerRadius : root.outerRadius)
+-                        }
+-
+                         // Pin button (horizontal)
+                         Loader {
+                             active: (Config.bar && Config.bar.showPinButton !== undefined ? Config.bar.showPinButton : true)
+@@ -633,16 +625,6 @@ Item {
+                                 width: parent.width
+                                 spacing: 4
+ 
+-                                LayoutSelectorButton {
+-                                    id: layoutSelectorButtonVert
+-                                    bar: root
+-                                    layerEnabled: root.shadowsEnabled
+-                                    Layout.alignment: Qt.AlignHCenter
+-                                    startRadius: root.outerRadius
+-                                    endRadius: root.innerRadius
+-                                    vertical: true
+-                                }
+-
+                                 Workspaces {
+                                     id: workspacesVert
+                                     orientation: root.orientation
+diff --git a/modules/bar/systray/SysTray.qml b/modules/bar/systray/SysTray.qml
+index 83464b5..94e4495 100644
+--- a/modules/bar/systray/SysTray.qml
++++ b/modules/bar/systray/SysTray.qml
+@@ -8,8 +8,26 @@ import qs.modules.components
+     variant: "bg"
+     id: root
+ 
+-    // Hide when no tray items
+-    visible: hasItems
++    // Ambxst owns these controls visually; do not duplicate their legacy
++    // status-notifier icons in the bar. Application tray items remain visible.
++    readonly property var hiddenItemTokens: [
++        "nm-applet",
++        "nm-connection-editor",
++        "networkmanager",
++        "blueman",
++        "bluetooth",
++        "easyeffects",
++        "easy-effects",
++        "pasystray",
++        "volumeicon",
++        "wireplumber"
++    ]
++    function isShellManaged(item) {
++        const identity = ((item.id || "") + " " + (item.title || "") + " " + (item.tooltipTitle || "")).toLowerCase();
++        return hiddenItemTokens.some(token => identity.includes(token));
++    }
++    readonly property var visibleItems: SystemTray.items.values.filter(item => !isShellManaged(item))
++    visible: visibleItems.length > 0
+ 
+     topLeftRadius: root.vertical ? root.startRadius : root.startRadius
+     topRightRadius: root.vertical ? root.startRadius : root.endRadius
+@@ -26,7 +44,7 @@ import qs.modules.components
+     property bool vertical: bar.orientation === "vertical"
+ 
+     // Hide completely when empty - check both orientations
+-    readonly property bool hasItems: rowRepeater.count > 0 || columnRepeater.count > 0
++    readonly property bool hasItems: visibleItems.length > 0
+ 
+     // Ajustes de tamaño dinámicos según orientación
+     height: vertical ? implicitHeight : parent.height
+@@ -43,7 +61,7 @@ import qs.modules.components
+ 
+         Repeater {
+             id: rowRepeater
+-            model: SystemTray.items
++            model: root.visibleItems
+ 
+             SysTrayItem {
+                 required property SystemTrayItem modelData
+@@ -62,7 +80,7 @@ import qs.modules.components
+ 
+         Repeater {
+             id: columnRepeater
+-            model: SystemTray.items
++            model: root.visibleItems
+ 
+             SysTrayItem {
+                 required property SystemTrayItem modelData
+diff --git a/modules/shell/ReservationWindows.qml b/modules/shell/ReservationWindows.qml
+index 26da91a..6319251 100644
+--- a/modules/shell/ReservationWindows.qml
++++ b/modules/shell/ReservationWindows.qml
+@@ -19,6 +19,7 @@ Item {
+     property bool dockEnabled: true
+     property string dockPosition: "bottom"
+     property bool dockPinned: true
++    property bool dockRevealed: false
+     property int dockHeight: 0
+ 
+     property bool frameEnabled: false
+@@ -62,7 +63,7 @@ Item {
+                 zone += barSize + barOuterMargin;
+                 if (containBar && frameEnabled) zone += actualFrameSize;
+             }
+-            if (dockEnabled && dockPosition === "top" && dockPinned) zone += dockHeight;
++            if (dockEnabled && dockPosition === "top" && dockRevealed) zone += dockHeight;
+             return zone;
+         }
+         exclusionMode: exclusiveZone > 0 ? ExclusionMode.Normal : ExclusionMode.Ignore
+@@ -94,7 +95,7 @@ Item {
+                 zone += barSize + barOuterMargin;
+                 if (containBar && frameEnabled) zone += actualFrameSize;
+             }
+-            if (dockEnabled && dockPosition === "bottom" && dockPinned) zone += dockHeight;
++            if (dockEnabled && dockPosition === "bottom" && dockRevealed) zone += dockHeight;
+             return zone;
+         }
+         exclusionMode: exclusiveZone > 0 ? ExclusionMode.Normal : ExclusionMode.Ignore
+@@ -130,7 +131,7 @@ Item {
+                 zone += sidebarWidth;
+                 zone += frameEnabled ? actualFrameSize : sidebarMargin;
+             }
+-            if (dockEnabled && dockPosition === "left" && dockPinned) zone += dockHeight;
++            if (dockEnabled && dockPosition === "left" && dockRevealed) zone += dockHeight;
+             return zone;
+         }
+         exclusionMode: exclusiveZone > 0 ? ExclusionMode.Normal : ExclusionMode.Ignore
+@@ -166,7 +167,7 @@ Item {
+                 zone += sidebarWidth;
+                 zone += frameEnabled ? actualFrameSize : sidebarMargin;
+             }
+-            if (dockEnabled && dockPosition === "right" && dockPinned) zone += dockHeight;
++            if (dockEnabled && dockPosition === "right" && dockRevealed) zone += dockHeight;
+             return zone;
+         }
+         exclusionMode: exclusiveZone > 0 ? ExclusionMode.Normal : ExclusionMode.Ignore
+diff --git a/shell.qml b/shell.qml
+index 888996d..496dec5 100644
+--- a/shell.qml
++++ b/shell.qml
+@@ -109,6 +109,7 @@ ShellRoot {
+                 }
+                 dockPosition: unifiedPanel.dockPosition
+                 dockPinned: unifiedPanel.dockPinned
++                dockRevealed: unifiedPanel.dockReveal
+                 dockHeight: unifiedPanel.dockHeight
+                 containBar: unifiedPanel.containBar
+ 
