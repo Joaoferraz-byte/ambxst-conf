@@ -26,13 +26,20 @@
             config.allowUnfree = true;
           };
           lib = nixpkgs.lib;
+          go1271 = pkgs.go_1_27.overrideAttrs (old: {
+            version = "1.27.1";
+            src = pkgs.fetchurl {
+              url = "https://go.dev/dl/go1.27.1.src.tar.gz";
+              hash = "sha256-TkCKuuEm2Ra2FkYnGT8sVPDjyhMS1pO4bbRfhiqyOLE=";
+            };
+          });
+          buildGoModule = pkgs.buildGoModule.override { go = go1271; };
           axctlFixed = {
-            packages.${system}.default = pkgs.buildGoModule {
+            packages.${system}.default = buildGoModule {
               pname = "axctl";
               version = "0.0.21";
               src = ambxst.inputs.axctl;
               subPackages = [ "." ];
-              go = pkgs.go_1_27;
               ldflags = [ "-X" "main.Version=0.0.21" ];
               vendorHash = "sha256-4PUs37IRhUPtuXi4KU8wOUErIkVlcnaoj94zBDBsMdk=";
             };
