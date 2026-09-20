@@ -44,16 +44,22 @@
               vendorHash = "sha256-4PUs37IRhUPtuXi4KU8wOUErIkVlcnaoj94zBDBsMdk=";
             };
           };
-          ambxstPatched = pkgs.applyPatches {
-            name = "ambxst-livara-source";
+          ambxstPatched = pkgs.stdenv.mkDerivation {
+            pname = "ambxst-livara-source";
+            version = "1.3.7";
             src = ambxst;
             patches = [ ./patches/livara-defaults.patch ];
+            dontBuild = true;
+            installPhase = ''
+              mkdir -p "$out"
+              cp -r . "$out/"
+            '';
           };
-          ambxstPackage = import "${ambxstPatched}/nix/packages" {
+          ambxstPackage = import "${ambxst}/nix/packages" {
             inherit pkgs lib system;
             axctl = axctlFixed;
             self = ambxstPatched;
-            version = lib.removeSuffix "\n" (builtins.readFile "${ambxstPatched}/version");
+            version = "1.3.7";
           };
         in {
           default = ambxstPackage;

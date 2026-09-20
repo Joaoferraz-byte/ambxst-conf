@@ -1,7 +1,7 @@
 diff --git a/assets/presets/Ambxst Default/theme.json b/assets/presets/Ambxst Default/theme.json
 index 5192f49..043bd82 100644
---- a/assets/presets/Ambxst Default/theme.json	
-+++ b/assets/presets/Ambxst Default/theme.json	
+--- a/assets/presets/Ambxst Default/theme.json
++++ b/assets/presets/Ambxst Default/theme.json
 @@ -37,7 +37,7 @@
              0
          ],
@@ -43,7 +43,7 @@ index 9d43848..0fa1800 100644
 @@ -392,14 +392,6 @@ Item {
                              endRadius: root.innerRadius
                          }
- 
+
 -                        LayoutSelectorButton {
 -                            id: layoutSelectorButton
 -                            bar: root
@@ -58,7 +58,7 @@ index 9d43848..0fa1800 100644
 @@ -633,16 +625,6 @@ Item {
                                  width: parent.width
                                  spacing: 4
- 
+
 -                                LayoutSelectorButton {
 -                                    id: layoutSelectorButtonVert
 -                                    bar: root
@@ -79,7 +79,7 @@ index 83464b5..94e4495 100644
 @@ -8,8 +8,26 @@ import qs.modules.components
      variant: "bg"
      id: root
- 
+
 -    // Hide when no tray items
 -    visible: hasItems
 +    // Ambxst owns these controls visually; do not duplicate their legacy
@@ -102,36 +102,106 @@ index 83464b5..94e4495 100644
 +    }
 +    readonly property var visibleItems: SystemTray.items.values.filter(item => !isShellManaged(item))
 +    visible: visibleItems.length > 0
- 
+
      topLeftRadius: root.vertical ? root.startRadius : root.startRadius
      topRightRadius: root.vertical ? root.startRadius : root.endRadius
 @@ -26,7 +44,7 @@ import qs.modules.components
      property bool vertical: bar.orientation === "vertical"
- 
+
      // Hide completely when empty - check both orientations
 -    readonly property bool hasItems: rowRepeater.count > 0 || columnRepeater.count > 0
 +    readonly property bool hasItems: visibleItems.length > 0
- 
+
      // Ajustes de tamaño dinámicos según orientación
      height: vertical ? implicitHeight : parent.height
 @@ -43,7 +61,7 @@ import qs.modules.components
- 
+
          Repeater {
              id: rowRepeater
 -            model: SystemTray.items
 +            model: root.visibleItems
- 
+
              SysTrayItem {
                  required property SystemTrayItem modelData
 @@ -62,7 +80,7 @@ import qs.modules.components
- 
+
          Repeater {
              id: columnRepeater
 -            model: SystemTray.items
 +            model: root.visibleItems
- 
+
              SysTrayItem {
                  required property SystemTrayItem modelData
+diff --git a/modules/bar/workspaces/Workspaces.qml b/modules/bar/workspaces/Workspaces.qml
+index 5a1625c..87d2521 100644
+--- a/modules/bar/workspaces/Workspaces.qml
++++ b/modules/bar/workspaces/Workspaces.qml
+@@ -524,10 +524,7 @@ Item {
+                         visible: opacity > 0
+                         IconImage {
+                             id: mainAppIcon
+-                            anchors.bottom: parent.bottom
+-                            anchors.right: parent.right
+-                            anchors.bottomMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
+-                            anchors.rightMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
++                            anchors.centerIn: parent
+
+                             source: workspaceButtonBackground.mainAppIconSource
+                             implicitSize: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? workspaceIconSize : workspaceIconSizeShrinked
+@@ -539,20 +536,6 @@ Item {
+                                     easing.type: Easing.OutQuad
+                                 }
+                             }
+-                            Behavior on anchors.bottomMargin {
+-                                enabled: Config.animDuration > 0
+-                                NumberAnimation {
+-                                    duration: 150
+-                                    easing.type: Easing.OutQuad
+-                                }
+-                            }
+-                            Behavior on anchors.rightMargin {
+-                                enabled: Config.animDuration > 0
+-                                NumberAnimation {
+-                                    duration: 150
+-                                    easing.type: Easing.OutQuad
+-                                }
+-                            }
+                             Behavior on implicitSize {
+                                 enabled: Config.animDuration > 0
+                                 NumberAnimation {
+@@ -661,10 +644,7 @@ Item {
+                         visible: opacity > 0
+                         IconImage {
+                             id: mainAppIconVert
+-                            anchors.bottom: parent.bottom
+-                            anchors.right: parent.right
+-                            anchors.bottomMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
+-                            anchors.rightMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
++                            anchors.centerIn: parent
+
+                             source: workspaceButtonBackgroundVert.mainAppIconSource
+                             implicitSize: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? workspaceIconSize : workspaceIconSizeShrinked
+@@ -676,20 +656,6 @@ Item {
+                                     easing.type: Easing.OutQuad
+                                 }
+                             }
+-                            Behavior on anchors.bottomMargin {
+-                                enabled: Config.animDuration > 0
+-                                NumberAnimation {
+-                                    duration: 150
+-                                    easing.type: Easing.OutQuad
+-                                }
+-                            }
+-                            Behavior on anchors.rightMargin {
+-                                enabled: Config.animDuration > 0
+-                                NumberAnimation {
+-                                    duration: 150
+-                                    easing.type: Easing.OutQuad
+-                                }
+-                            }
+                             Behavior on implicitSize {
+                                 enabled: Config.animDuration > 0
+                                 NumberAnimation {
 diff --git a/modules/shell/ReservationWindows.qml b/modules/shell/ReservationWindows.qml
 index 26da91a..6319251 100644
 --- a/modules/shell/ReservationWindows.qml
@@ -142,7 +212,7 @@ index 26da91a..6319251 100644
      property bool dockPinned: true
 +    property bool dockRevealed: false
      property int dockHeight: 0
- 
+
      property bool frameEnabled: false
 @@ -62,7 +63,7 @@ Item {
                  zone += barSize + barOuterMargin;
@@ -191,4 +261,4 @@ index 888996d..496dec5 100644
 +                dockRevealed: unifiedPanel.dockReveal
                  dockHeight: unifiedPanel.dockHeight
                  containBar: unifiedPanel.containBar
- 
+
