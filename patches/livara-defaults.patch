@@ -154,29 +154,32 @@ index 888996d..496dec5 100644
                  dockHeight: unifiedPanel.dockHeight
                  containBar: unifiedPanel.containBar
 
+diff --git a/modules/bar/workspaces/Workspaces.qml b/modules/bar/workspaces/Workspaces.qml
 --- a/modules/bar/workspaces/Workspaces.qml
 +++ b/modules/bar/workspaces/Workspaces.qml
-@@ -500,7 +500,7 @@
-                         }
+@@ -471,11 +471,10 @@
+                         }, null);
                      }
-                     Rectangle {
--                        opacity: (Config.workspaces.showNumbers || Config.workspaces.alwaysShowNumbers || (Config.workspaces.showAppIcons && workspaceButtonBackground.focusedWindow)) ? 0 : (((monitor && monitor.activeWorkspace ? monitor.activeWorkspace.id : undefined) == button.workspaceValue) || workspaceOccupied[index] ? 1 : 0.5)
-+                        opacity: (Config.workspaces.showNumbers || Config.workspaces.alwaysShowNumbers) ? 0 : (((monitor && monitor.activeWorkspace ? monitor.activeWorkspace.id : undefined) == button.workspaceValue) || workspaceOccupied[index] ? 1 : 0.5)
+                     readonly property var focusedDesktopEntry: focusedWindow ? DesktopEntries.heuristicLookup(focusedWindow.class) : null
+-                    property var mainAppIconSource: {
+-                        if (focusedDesktopEntry && focusedDesktopEntry.icon) {
+-                            return Quickshell.iconPath(focusedDesktopEntry.icon, "image-missing");
+-                        }
+-                        return Quickshell.iconPath(AppSearch.getCachedIcon(focusedWindow ? focusedWindow.class : undefined), "image-missing");
++                    property string mainAppIconName: {
++                        if (focusedDesktopEntry && focusedDesktopEntry.icon)
++                            return focusedDesktopEntry.icon;
++                        return AppSearch.guessIcon(focusedWindow ? focusedWindow.class : "");
+                     }
+
+                     Text {
+@@ -522,44 +521,14 @@
+                         height: workspaceButtonWidth
+                         opacity: !Config.workspaces.showAppIcons ? 0 : (workspaceButtonBackground.focusedWindow && !Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? 1 : workspaceButtonBackground.focusedWindow ? workspaceIconOpacityShrinked : 0
                          visible: opacity > 0
-                         anchors.centerIn: parent
-                         width: workspaceButtonWidth * 0.2
-@@ -516,57 +516,6 @@
-                             }
-                         }
-                     }
--                    Item {
--                        anchors.centerIn: parent
--                        width: workspaceButtonWidth
--                        height: workspaceButtonWidth
--                        opacity: !Config.workspaces.showAppIcons ? 0 : (workspaceButtonBackground.focusedWindow && !Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? 1 : workspaceButtonBackground.focusedWindow ? workspaceIconOpacityShrinked : 0
--                        visible: opacity > 0
 -                        IconImage {
--                            id: mainAppIcon
++                        Image {
+                             id: mainAppIcon
 -                            anchors.bottom: parent.bottom
 -                            anchors.right: parent.right
 -                            anchors.bottomMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
@@ -213,37 +216,38 @@ index 888996d..496dec5 100644
 -                                    easing.type: Easing.OutQuad
 -                                }
 -                            }
--                        }
--
--                        Tinted {
--                            sourceItem: mainAppIcon
--                            anchors.fill: mainAppIcon
--                        }
--                    }
-                 }
-             }
-         }
-@@ -637,7 +586,7 @@
++                            anchors.fill: parent
++                            source: "image://icon/" + workspaceButtonBackground.mainAppIconName
++                            sourceSize.width: width * 2
++                            sourceSize.height: height * 2
++                            fillMode: Image.PreserveAspectFit
++                            mipmap: true
                          }
+
+                         Tinted {
+@@ -608,11 +577,10 @@
+                         }, null);
                      }
-                     Rectangle {
--                        opacity: (Config.workspaces.showNumbers || Config.workspaces.alwaysShowNumbers || (Config.workspaces.showAppIcons && workspaceButtonBackgroundVert.focusedWindow)) ? 0 : (((monitor && monitor.activeWorkspace ? monitor.activeWorkspace.id : undefined) == buttonVert.workspaceValue) || workspaceOccupied[index] ? 1 : 0.5)
-+                        opacity: (Config.workspaces.showNumbers || Config.workspaces.alwaysShowNumbers) ? 0 : (((monitor && monitor.activeWorkspace ? monitor.activeWorkspace.id : undefined) == buttonVert.workspaceValue) || workspaceOccupied[index] ? 1 : 0.5)
+                     readonly property var focusedDesktopEntry: focusedWindow ? DesktopEntries.heuristicLookup(focusedWindow.class) : null
+-                    property var mainAppIconSource: {
+-                        if (focusedDesktopEntry && focusedDesktopEntry.icon) {
+-                            return Quickshell.iconPath(focusedDesktopEntry.icon, "image-missing");
+-                        }
+-                        return Quickshell.iconPath(AppSearch.getCachedIcon(focusedWindow ? focusedWindow.class : undefined), "image-missing");
++                    property string mainAppIconName: {
++                        if (focusedDesktopEntry && focusedDesktopEntry.icon)
++                            return focusedDesktopEntry.icon;
++                        return AppSearch.guessIcon(focusedWindow ? focusedWindow.class : "");
+                     }
+
+                     Text {
+@@ -659,44 +627,14 @@
+                         height: workspaceButtonWidth
+                         opacity: !Config.workspaces.showAppIcons ? 0 : (workspaceButtonBackgroundVert.focusedWindow && !Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? 1 : workspaceButtonBackgroundVert.focusedWindow ? workspaceIconOpacityShrinked : 0
                          visible: opacity > 0
-                         anchors.centerIn: parent
-                         width: workspaceButtonWidth * 0.2
-@@ -653,57 +602,6 @@
-                             }
-                         }
-                     }
--                    Item {
--                        anchors.centerIn: parent
--                        width: workspaceButtonWidth
--                        height: workspaceButtonWidth
--                        opacity: !Config.workspaces.showAppIcons ? 0 : (workspaceButtonBackgroundVert.focusedWindow && !Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? 1 : workspaceButtonBackgroundVert.focusedWindow ? workspaceIconOpacityShrinked : 0
--                        visible: opacity > 0
 -                        IconImage {
--                            id: mainAppIconVert
++                        Image {
+                             id: mainAppIconVert
 -                            anchors.bottom: parent.bottom
 -                            anchors.right: parent.right
 -                            anchors.bottomMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
@@ -280,13 +284,12 @@ index 888996d..496dec5 100644
 -                                    easing.type: Easing.OutQuad
 -                                }
 -                            }
--                        }
--
--                        Tinted {
--                            sourceItem: mainAppIconVert
--                            anchors.fill: mainAppIconVert
--                        }
--                    }
-                 }
-             }
-         }
++                            anchors.fill: parent
++                            source: "image://icon/" + workspaceButtonBackgroundVert.mainAppIconName
++                            sourceSize.width: width * 2
++                            sourceSize.height: height * 2
++                            fillMode: Image.PreserveAspectFit
++                            mipmap: true
+                         }
+
+                         Tinted {
