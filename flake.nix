@@ -50,35 +50,19 @@
             self = ambxst.outPath;
             version = "1.3.7";
           };
-          ambxstPackage = pkgs.writeShellApplication {
-            name = "ambxst";
-            runtimeInputs = with pkgs; [ bash coreutils gnused git ];
-            text = ''
-              set -Eeuo pipefail
-              base_launcher="${ambxstBasePackage}/bin/ambxst"
-              cache_root="''${XDG_CACHE_HOME:-$HOME/.cache}/ambxst"
-              runtime_shell="$cache_root/livara-shell-1.3.7"
-              marker="$runtime_shell/.livara-patched"
-
-              if [ ! -f "$marker" ]; then
-                mkdir -p "$cache_root"
-                tmp_shell="$cache_root/.livara-shell-1.3.7.''$$"
-                rm -rf "$tmp_shell"
-                mkdir -p "$tmp_shell"
-                cp -a "$(sed -n 's/^[[:space:]]*export AMBXST_SHELL="\([^"]*\)"$/\1/p' "$base_launcher")/." "$tmp_shell/"
-                (cd "$tmp_shell" && git apply "${./patches/livara-defaults.patch}")
-                touch "$tmp_shell/.livara-patched"
-                rm -rf "$runtime_shell"
-                mv "$tmp_shell" "$runtime_shell"
-              fi
-
-              tmp_launcher="$cache_root/.ambxst-launcher-1.3.7.''$$"
-              sed "s|^[[:space:]]*export AMBXST_SHELL=.*|export AMBXST_SHELL=\"$runtime_shell\"|" \
-                "$base_launcher" > "$tmp_launcher"
-              chmod 0755 "$tmp_launcher"
-              exec "$tmp_launcher" "$@"
-            '';
+          ambxstPatched = pkgs.applyPatches {
+            name = "ambxst-livara-shell";
+            src = ambxst;
+            patches = [ ./patches/livara-defaults.patch ];
           };
+          ambxstPackage = pkgs.runCommand "Ambxst-1.3.7" {
+            nativeBuildInputs = [ pkgs.makeWrapper ];
+            meta.mainProgram = "ambxst";
+          } ''
+            mkdir -p "$out/bin"
+            makeWrapper "${ambxstBasePackage}/bin/ambxst" "$out/bin/ambxst" \
+              --set AMBXST_SHELL "${ambxstPatched}"
+          '';
         in {
           default = ambxstPackage;
           Ambxst = ambxstPackage;
