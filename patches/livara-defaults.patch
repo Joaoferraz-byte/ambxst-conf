@@ -310,3 +310,23 @@ diff --git "a/assets/presets/Ambxst Default/workspaces.json" "b/assets/presets/A
 -    "shown": 10
 +    "shown": 3
  }
+diff --git a/modules/services/GlobalShortcuts.qml b/modules/services/GlobalShortcuts.qml
+--- a/modules/services/GlobalShortcuts.qml
++++ b/modules/services/GlobalShortcuts.qml
+@@ -79,6 +79,16 @@
+                 Screenshot.captureMode = "lens";
+                 GlobalStates.screenshotToolVisible = true;
+                 break;
++            case "ocr":
++                Screenshot.initialize();
++                Screenshot.captureMode = "ocr";
++                GlobalStates.screenshotToolVisible = true;
++                break;
++            case "qr":
++                Screenshot.initialize();
++                Screenshot.captureMode = "qr";
++                GlobalStates.screenshotToolVisible = true;
++                break;
+             case "lockscreen": GlobalStates.lockscreenVisible = true; break;
+             
+             // Media

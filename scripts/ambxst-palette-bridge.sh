@@ -6,7 +6,13 @@ destination="${XDG_STATE_HOME:-${HOME}/.local/state}/livara/theme/palette.dark.j
 [[ -s "$source_file" ]] || exit 0
 mkdir -p "$(dirname "$destination")"
 tmp="$(mktemp "$(dirname "$destination")/.palette.XXXXXX")"
-trap 'rm -f "$tmp"' EXIT
+browser_css="$(dirname "$destination")/browser/firefox.css"
+wezterm_css="${XDG_CONFIG_HOME:-${HOME}/.config}/wezterm/colors/Ambxst.toml"
+mkdir -p "$(dirname "$browser_css")"
+mkdir -p "$(dirname "$wezterm_css")"
+browser_tmp="$(mktemp "$(dirname "$browser_css")/.firefox.XXXXXX")"
+wezterm_tmp="$(mktemp "${TMPDIR:-/tmp}/.ambxst-wezterm.XXXXXX")"
+trap 'rm -f "$tmp" "$browser_tmp" "$wezterm_tmp"' EXIT
 jq -e '
   def color($name; $fallback): (.[$name] // $fallback);
   {
@@ -29,3 +35,49 @@ jq -e '
   }
 ' "$source_file" > "$tmp"
 mv -f "$tmp" "$destination"
+
+read_color() {
+  jq -r --arg name "$1" --arg fallback "$2" '.[$name] // .[$fallback] // .background // "#111318"' "$source_file"
+}
+
+background="$(read_color background surface)"
+surface="$(read_color surface surfaceContainer)"
+surface_variant="$(read_color surfaceVariant outlineVariant)"
+foreground="$(read_color onBackground overBackground)"
+primary="$(read_color primary blue)"
+secondary="$(read_color secondary cyan)"
+
+cat > "$browser_tmp" <<EOF
+/* Generated from Ambxst ~/.cache/ambxst/colors.json. Do not edit. */
+:root {
+  --lwt-accent-color: ${background} !important;
+  --lwt-text-color: ${foreground} !important;
+  --toolbar-bgcolor: ${surface} !important;
+  --toolbar-color: ${foreground} !important;
+  --lwt-selected-tab-background-color: ${primary} !important;
+  --tab-selected-bgcolor: ${primary} !important;
+  --lwt-toolbar-field-background-color: ${surface_variant} !important;
+  --lwt-toolbar-field-color: ${foreground} !important;
+  --toolbar-field-focus-border-color: ${secondary} !important;
+  --urlbarView-highlight-background: ${surface_variant} !important;
+  --button-hover-bgcolor: ${surface_variant} !important;
+}
+EOF
+chmod 0644 "$browser_tmp"
+mv -f "$browser_tmp" "$browser_css"
+
+cat > "$wezterm_tmp" <<EOF
+# Generated from Ambxst ~/.cache/ambxst/colors.json. Do not edit.
+[colors]
+foreground = "${foreground}"
+background = "${background}"
+cursor_bg = "${primary}"
+cursor_border = "${primary}"
+cursor_fg = "${background}"
+selection_bg = "${surface_variant}"
+selection_fg = "${foreground}"
+ansi = ["${background}", "$(read_color red primary)", "$(read_color green secondary)", "$(read_color yellow tertiary)", "${primary}", "${secondary}", "$(read_color cyan secondary)", "${foreground}"]
+brights = ["${surface_variant}", "$(read_color red primary)", "$(read_color green secondary)", "$(read_color yellow tertiary)", "${primary}", "${secondary}", "$(read_color cyan secondary)", "${foreground}"]
+EOF
+chmod 0644 "$wezterm_tmp"
+mv -f "$wezterm_tmp" "$wezterm_css"

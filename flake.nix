@@ -9,7 +9,7 @@
       inputs.axctl.url = "github:Axenide/axctl/dedcaa6769a577b0a0ea767631f5f4ec317fff59";
     };
     shell-conf = {
-      url = "github:Joaoferraz-byte/shell-conf/807cfb5fe0f3ef9e1db3f16a02cf085021edc1b3";
+      url = "github:Joaoferraz-byte/shell-conf/eb44268704cac46b8cb81befa7b86a1e329011e2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

@@ -37,6 +37,7 @@
       "original": {
         "owner": "Axenide",
         "repo": "axctl",
+        "rev": "dedcaa6769a577b0a0ea767631f5f4ec317fff59",
         "type": "github"
       }
     },
@@ -165,17 +166,17 @@
         "noctalia-conf": "noctalia-conf"
       },
       "locked": {
-        "lastModified": 1789907297,
-        "narHash": "sha256-OW8G4hjrSTbvzSRJpLs9PDKYEcYw6PWJhMfPdUiV/Ek=",
+        "lastModified": 1789940732,
+        "narHash": "sha256-hkTNO9KsgQTdbEzWo7RBJYlWWY+z84mqEhQ3csHxlkE=",
         "owner": "Joaoferraz-byte",
         "repo": "shell-conf",
-        "rev": "807cfb5fe0f3ef9e1db3f16a02cf085021edc1b3",
+        "rev": "eb44268704cac46b8cb81befa7b86a1e329011e2",
         "type": "github"
       },
       "original": {
         "owner": "Joaoferraz-byte",
         "repo": "shell-conf",
-        "rev": "807cfb5fe0f3ef9e1db3f16a02cf085021edc1b3",
+        "rev": "eb44268704cac46b8cb81befa7b86a1e329011e2",
         "type": "github"
       }
     }
