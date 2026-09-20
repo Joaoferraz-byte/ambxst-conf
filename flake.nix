@@ -18,26 +18,53 @@
     let
       systems = [ "x86_64-linux" "aarch64-linux" ];
       forEachSystem = nixpkgs.lib.genAttrs systems;
+
+      fixedPackages = forEachSystem (system:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+          };
+          lib = nixpkgs.lib;
+          axctlFixed = {
+            packages.${system}.default = pkgs.buildGoModule {
+              pname = "axctl";
+              version = "0.0.21";
+              src = ambxst.inputs.axctl;
+              subPackages = [ "." ];
+              go = pkgs.go_1_27;
+              ldflags = [ "-X" "main.Version=0.0.21" ];
+              vendorHash = "sha256-4PUs37IRhUPtuXi4KU8wOUErIkVlcnaoj94zBDBsMdk=";
+            };
+          };
+          ambxstPackage = import "${ambxst}/nix/packages" {
+            inherit pkgs lib system;
+            axctl = axctlFixed;
+            self = ambxst.outPath;
+            version = lib.removeSuffix "\n" (builtins.readFile "${ambxst}/version");
+          };
+        in {
+          default = ambxstPackage;
+          Ambxst = ambxstPackage;
+        });
     in {
-      packages = forEachSystem (system: {
-        default = ambxst.packages.${system}.default;
-        Ambxst = ambxst.packages.${system}.Ambxst;
-      });
+      packages = fixedPackages;
 
       overlays.default = final: prev: {
-        ambxst = ambxst.packages.${final.stdenv.hostPlatform.system}.default;
+        ambxst = fixedPackages.${final.stdenv.hostPlatform.system}.default;
       };
 
       nixosModules.default = { pkgs, lib, ... }:
         {
           imports = [ ambxst.nixosModules.default ];
           programs.ambxst.enable = lib.mkDefault true;
+          programs.ambxst.package = lib.mkForce fixedPackages.${pkgs.stdenv.hostPlatform.system}.default;
         };
       nixosModules.ambxst = self.nixosModules.default;
 
       homeModules.default = { config, lib, pkgs, ... }:
         let
-          ambxstPackage = ambxst.packages.${pkgs.stdenv.hostPlatform.system}.default;
+          ambxstPackage = fixedPackages.${pkgs.stdenv.hostPlatform.system}.default;
           paletteBridge = pkgs.writeShellApplication {
             name = "livara-ambxst-palette-bridge";
             runtimeInputs = with pkgs; [ bash coreutils jq ];
