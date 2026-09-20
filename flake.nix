@@ -84,6 +84,46 @@
             AMBXST_VERSION = "1.3.7";
             LIVARA_AMBXST_THEME_ROOT = "${config.home.homeDirectory}/.cache/ambxst";
           };
+          # Ambxst persists dock preferences outside the Nix store. Seed only
+          # the Livara policy and merge it with existing user preferences so
+          # the shell remains free to update its JSON files at runtime.
+          home.activation.livaraAmbxstDockPolicy = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            if [ -z "''${DRY_RUN:-}" ]; then
+              dock_dir="${config.xdg.configHome}/ambxst/config"
+              dock_file="$dock_dir/dock.json"
+              pinned_dir="${config.xdg.dataHome}/ambxst"
+              pinned_file="$pinned_dir/pinnedapps.json"
+              ignored_patterns='["^(nm-applet|nm-connection-editor)$","^(blueman-applet|blueman-manager)$"]'
+              pinned_apps='["vesktop","nvim","org.telegram.desktop","com.github.xournalpp.xournalpp","zen-beta"]'
+
+              install -d "$dock_dir" "$pinned_dir"
+
+              if [ -s "$dock_file" ] && jq -e . "$dock_file" >/dev/null 2>&1; then
+                jq --argjson patterns "$ignored_patterns" \
+                  '.ignoredAppRegexes = (((.ignoredAppRegexes // []) + $patterns) | unique)' \
+                  "$dock_file" > "$dock_file.tmp"
+              else
+                printf '%s\n' '{"ignoredAppRegexes":["quickshell.*","xdg-desktop-portal.*"]}' > "$dock_file.tmp"
+                jq --argjson patterns "$ignored_patterns" \
+                  '.ignoredAppRegexes = (((.ignoredAppRegexes // []) + $patterns) | unique)' \
+                  "$dock_file.tmp" > "$dock_file.tmp2"
+                mv -f "$dock_file.tmp2" "$dock_file.tmp"
+              fi
+              install -m 0644 "$dock_file.tmp" "$dock_file"
+              rm -f "$dock_file.tmp"
+
+              if [ -s "$pinned_file" ] && jq -e . "$pinned_file" >/dev/null 2>&1; then
+                jq --argjson apps "$pinned_apps" \
+                  '.apps = (((.apps // []) + $apps) | unique)' \
+                  "$pinned_file" > "$pinned_file.tmp"
+              else
+                jq -n --argjson apps "$pinned_apps" \
+                  '{apps: $apps}' > "$pinned_file.tmp"
+              fi
+              install -m 0644 "$pinned_file.tmp" "$pinned_file"
+              rm -f "$pinned_file.tmp"
+            fi
+          '';
           systemd.user.services.livara-ambxst-palette-bridge = {
             Unit = {
               Description = "Bridge Ambxst colors to Livara application adapters";
