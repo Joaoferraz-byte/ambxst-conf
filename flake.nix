@@ -127,7 +127,7 @@
               dock_file="$dock_dir/dock.json"
               pinned_dir="${config.xdg.dataHome}/ambxst"
               pinned_file="$pinned_dir/pinnedapps.json"
-              ignored_patterns='["^(nm-applet|nm-connection-editor)$","^(blueman-applet|blueman-manager)$"]'
+              ignored_patterns='["^(nm-applet|nm-connection-editor)$","^(blueman-applet|blueman-manager)$","^(com[.]github[.]wwmm[.]easyeffects|easyeffects|easy-effects)$"]'
               pinned_apps='["vesktop","nvim","org.telegram.desktop","com.github.xournalpp.xournalpp","zen-beta"]'
 
               install -d "$dock_dir" "$pinned_dir"
@@ -148,7 +148,8 @@
 
               if [ -s "$pinned_file" ] && jq -e . "$pinned_file" >/dev/null 2>&1; then
                 jq --argjson apps "$pinned_apps" \
-                  '.apps = (((.apps // []) + $apps) | unique)' \
+                  --arg managed_easyeffects '^(com[.]github[.]wwmm[.]easyeffects|easyeffects|easy-effects)$' \
+                  '.apps = ([ (.apps // [])[] | select((tostring | test($managed_easyeffects; "i")) | not) ] + $apps | unique)' \
                   "$pinned_file" > "$pinned_file.tmp"
               else
                 jq -n --argjson apps "$pinned_apps" \
@@ -182,6 +183,16 @@
       homeModules.ambxst = self.homeModules.default;
 
       checks = forEachSystem (system: let pkgs = import nixpkgs { inherit system; }; in {
+        patch-applies = pkgs.runCommand "ambxst-livara-patch-check" {
+          nativeBuildInputs = [ pkgs.git ];
+        } ''
+          cp -R --no-preserve=mode ${ambxst}/. source
+          chmod -R u+w source
+          cd source
+          git apply --check --unidiff-zero ${self}/patches/livara-defaults.patch
+          touch "$out"
+        '';
+
         bridge-script = pkgs.runCommand "ambxst-palette-bridge-check" {
           nativeBuildInputs = [ pkgs.bash ];
         } ''

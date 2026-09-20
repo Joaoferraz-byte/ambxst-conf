@@ -1,169 +1,104 @@
+diff --git a/assets/presets/Ambxst Default/workspaces.json b/assets/presets/Ambxst Default/workspaces.json
+index fe34399..8d608d8 100644
+--- a/assets/presets/Ambxst Default/workspaces.json
++++ b/assets/presets/Ambxst Default/workspaces.json
+@@ -4 +4 @@
+-    "showAppIcons": true,
++    "showAppIcons": false,
+@@ -6 +6 @@
+-    "shown": 10
++    "shown": 3
 diff --git a/modules/bar/BarContent.qml b/modules/bar/BarContent.qml
-index 9d43848..0fa1800 100644
+index 9d43848..90ea040 100644
 --- a/modules/bar/BarContent.qml
 +++ b/modules/bar/BarContent.qml
-@@ -392,14 +392,6 @@ Item {
-                             endRadius: root.innerRadius
-                         }
-
+@@ -395,6 +395,9 @@ Item {
 -                        LayoutSelectorButton {
 -                            id: layoutSelectorButton
 -                            bar: root
 -                            layerEnabled: root.shadowsEnabled
 -                            startRadius: root.innerRadius
 -                            endRadius: (root.pinButtonVisible) ? root.innerRadius : (root.dockAtStart ? root.innerRadius : root.outerRadius)
--                        }
--
-                         // Pin button (horizontal)
-                         Loader {
-                             active: (Config.bar && Config.bar.showPinButton !== undefined ? Config.bar.showPinButton : true)
-@@ -633,16 +625,6 @@ Item {
-                                 width: parent.width
-                                 spacing: 4
-
++                        Loader {
++                            id: layoutSelectorLoader
++                            active: AxctlService.compositorName !== "niri"
++                            sourceComponent: LayoutSelectorButton {
++                                bar: root
++                                layerEnabled: root.shadowsEnabled
++                                startRadius: root.innerRadius
++                                endRadius: (root.pinButtonVisible) ? root.innerRadius : (root.dockAtStart ? root.innerRadius : root.outerRadius)
++                            }
+@@ -636,4 +639,3 @@ Item {
 -                                LayoutSelectorButton {
 -                                    id: layoutSelectorButtonVert
 -                                    bar: root
 -                                    layerEnabled: root.shadowsEnabled
--                                    Layout.alignment: Qt.AlignHCenter
++                                Loader {
++                                    id: layoutSelectorLoaderVert
++                                    active: AxctlService.compositorName !== "niri"
+@@ -641,3 +643,7 @@ Item {
 -                                    startRadius: root.outerRadius
 -                                    endRadius: root.innerRadius
 -                                    vertical: true
--                                }
--
-                                 Workspaces {
-                                     id: workspacesVert
-                                     orientation: root.orientation
++                                    sourceComponent: LayoutSelectorButton {
++                                        bar: root
++                                        layerEnabled: root.shadowsEnabled
++                                        startRadius: root.outerRadius
++                                        endRadius: root.innerRadius
++                                        vertical: true
++                                    }
 diff --git a/modules/bar/systray/SysTray.qml b/modules/bar/systray/SysTray.qml
-index 83464b5..94e4495 100644
+index 83464b5..75526b8 100644
 --- a/modules/bar/systray/SysTray.qml
 +++ b/modules/bar/systray/SysTray.qml
-@@ -8,8 +8,29 @@ import qs.modules.components
-     variant: "bg"
-     id: root
-
+@@ -11,2 +11,31 @@ import qs.modules.components
 -    // Hide when no tray items
 -    visible: hasItems
-+    // Ambxst owns these controls visually; do not duplicate their legacy
-+    // status-notifier icons in the bar. Application tray items remain visible.
++    // Hide when no tray items. Easy Effects, network and audio controls are
++    // rendered by Ambxst widgets, so only exact SNI identities are filtered.
++    visible: visibleItems.length > 0
++
 +    readonly property var hiddenItemTokens: [
 +        "nm-applet",
 +        "nm-connection-editor",
 +        "networkmanager",
-+        "blueman",
++        "blueman-applet",
++        "blueman-manager",
 +        "bluetooth",
++        "com.github.wwmm.easyeffects",
 +        "easyeffects",
 +        "easy-effects",
 +        "easy effects",
 +        "easy_effects",
-+        "gapplication-service",
 +        "pasystray",
 +        "volumeicon",
 +        "wireplumber"
 +    ]
++
 +    function isShellManaged(item) {
-+        const identity = ((item.id || "") + " " + (item.title || "") + " " + (item.tooltipTitle || "") + " " + (item.icon || "")).toLowerCase();
-+        return hiddenItemTokens.some(token => identity.includes(token));
++        const fields = [item.id, item.title, item.tooltipTitle, item.icon]
++            .filter(value => value !== undefined && value !== null)
++            .map(value => String(value).toLowerCase());
++        return fields.some(field => hiddenItemTokens.some(token =>
++            field === token || field.endsWith("." + token) || field.endsWith("/" + token) ||
++            field.endsWith("-" + token) || field.endsWith("_" + token)));
 +    }
++
 +    readonly property var visibleItems: SystemTray.items.values.filter(item => !isShellManaged(item))
-+    visible: visibleItems.length > 0
- 
-     topLeftRadius: root.vertical ? root.startRadius : root.startRadius
-     topRightRadius: root.vertical ? root.startRadius : root.endRadius
-@@ -26,7 +44,7 @@ import qs.modules.components
-     property bool vertical: bar.orientation === "vertical"
-
-     // Hide completely when empty - check both orientations
+@@ -29 +58 @@ import qs.modules.components
 -    readonly property bool hasItems: rowRepeater.count > 0 || columnRepeater.count > 0
 +    readonly property bool hasItems: visibleItems.length > 0
-
-     // Ajustes de tamaño dinámicos según orientación
-     height: vertical ? implicitHeight : parent.height
-@@ -43,7 +61,7 @@ import qs.modules.components
-
-         Repeater {
-             id: rowRepeater
+@@ -46 +75 @@ import qs.modules.components
 -            model: SystemTray.items
 +            model: root.visibleItems
-
-             SysTrayItem {
-                 required property SystemTrayItem modelData
-@@ -62,7 +80,7 @@ import qs.modules.components
-
-         Repeater {
-             id: columnRepeater
+@@ -65 +94 @@ import qs.modules.components
 -            model: SystemTray.items
 +            model: root.visibleItems
-
-             SysTrayItem {
-                 required property SystemTrayItem modelData
-diff --git a/modules/shell/ReservationWindows.qml b/modules/shell/ReservationWindows.qml
-index 26da91a..6319251 100644
---- a/modules/shell/ReservationWindows.qml
-+++ b/modules/shell/ReservationWindows.qml
-@@ -19,6 +19,7 @@ Item {
-     property bool dockEnabled: true
-     property string dockPosition: "bottom"
-     property bool dockPinned: true
-+    property bool dockRevealed: false
-     property int dockHeight: 0
-
-     property bool frameEnabled: false
-@@ -62,7 +63,7 @@ Item {
-                 zone += barSize + barOuterMargin;
-                 if (containBar && frameEnabled) zone += actualFrameSize;
-             }
--            if (dockEnabled && dockPosition === "top" && dockPinned) zone += dockHeight;
-+            if (dockEnabled && dockPosition === "top" && dockRevealed) zone += dockHeight;
-             return zone;
-         }
-         exclusionMode: exclusiveZone > 0 ? ExclusionMode.Normal : ExclusionMode.Ignore
-@@ -94,7 +95,7 @@ Item {
-                 zone += barSize + barOuterMargin;
-                 if (containBar && frameEnabled) zone += actualFrameSize;
-             }
--            if (dockEnabled && dockPosition === "bottom" && dockPinned) zone += dockHeight;
-+            if (dockEnabled && dockPosition === "bottom" && dockRevealed) zone += dockHeight;
-             return zone;
-         }
-         exclusionMode: exclusiveZone > 0 ? ExclusionMode.Normal : ExclusionMode.Ignore
-@@ -130,7 +131,7 @@ Item {
-                 zone += sidebarWidth;
-                 zone += frameEnabled ? actualFrameSize : sidebarMargin;
-             }
--            if (dockEnabled && dockPosition === "left" && dockPinned) zone += dockHeight;
-+            if (dockEnabled && dockPosition === "left" && dockRevealed) zone += dockHeight;
-             return zone;
-         }
-         exclusionMode: exclusiveZone > 0 ? ExclusionMode.Normal : ExclusionMode.Ignore
-@@ -166,7 +167,7 @@ Item {
-                 zone += sidebarWidth;
-                 zone += frameEnabled ? actualFrameSize : sidebarMargin;
-             }
--            if (dockEnabled && dockPosition === "right" && dockPinned) zone += dockHeight;
-+            if (dockEnabled && dockPosition === "right" && dockRevealed) zone += dockHeight;
-             return zone;
-         }
-         exclusionMode: exclusiveZone > 0 ? ExclusionMode.Normal : ExclusionMode.Ignore
-diff --git a/shell.qml b/shell.qml
-index 888996d..496dec5 100644
---- a/shell.qml
-+++ b/shell.qml
-@@ -109,6 +109,7 @@ ShellRoot {
-                 }
-                 dockPosition: unifiedPanel.dockPosition
-                 dockPinned: unifiedPanel.dockPinned
-+                dockRevealed: unifiedPanel.dockReveal
-                 dockHeight: unifiedPanel.dockHeight
-                 containBar: unifiedPanel.containBar
-
 diff --git a/modules/bar/workspaces/Workspaces.qml b/modules/bar/workspaces/Workspaces.qml
+index 5a1625c..e0c8e65 100644
 --- a/modules/bar/workspaces/Workspaces.qml
 +++ b/modules/bar/workspaces/Workspaces.qml
-@@ -471,11 +471,10 @@
-                         }, null);
-                     }
-                     readonly property var focusedDesktopEntry: focusedWindow ? DesktopEntries.heuristicLookup(focusedWindow.class) : null
+@@ -474,5 +474,4 @@ Item {
 -                    property var mainAppIconSource: {
 -                        if (focusedDesktopEntry && focusedDesktopEntry.icon) {
 -                            return Quickshell.iconPath(focusedDesktopEntry.icon, "image-missing");
@@ -173,16 +108,10 @@ diff --git a/modules/bar/workspaces/Workspaces.qml b/modules/bar/workspaces/Work
 +                        if (focusedDesktopEntry && focusedDesktopEntry.icon)
 +                            return focusedDesktopEntry.icon;
 +                        return AppSearch.guessIcon(focusedWindow ? focusedWindow.class : "");
-                     }
-
-                     Text {
-@@ -522,44 +521,14 @@
-                         height: workspaceButtonWidth
-                         opacity: !Config.workspaces.showAppIcons ? 0 : (workspaceButtonBackground.focusedWindow && !Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? 1 : workspaceButtonBackground.focusedWindow ? workspaceIconOpacityShrinked : 0
-                         visible: opacity > 0
+@@ -525 +524 @@ Item {
 -                        IconImage {
 +                        Image {
-                             id: mainAppIcon
+@@ -527,36 +526,6 @@ Item {
 -                            anchors.bottom: parent.bottom
 -                            anchors.right: parent.right
 -                            anchors.bottomMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
@@ -225,13 +154,7 @@ diff --git a/modules/bar/workspaces/Workspaces.qml b/modules/bar/workspaces/Work
 +                            sourceSize.height: height * 2
 +                            fillMode: Image.PreserveAspectFit
 +                            mipmap: true
-                         }
-
-                         Tinted {
-@@ -608,11 +577,10 @@
-                         }, null);
-                     }
-                     readonly property var focusedDesktopEntry: focusedWindow ? DesktopEntries.heuristicLookup(focusedWindow.class) : null
+@@ -611,5 +580,4 @@ Item {
 -                    property var mainAppIconSource: {
 -                        if (focusedDesktopEntry && focusedDesktopEntry.icon) {
 -                            return Quickshell.iconPath(focusedDesktopEntry.icon, "image-missing");
@@ -241,16 +164,10 @@ diff --git a/modules/bar/workspaces/Workspaces.qml b/modules/bar/workspaces/Work
 +                        if (focusedDesktopEntry && focusedDesktopEntry.icon)
 +                            return focusedDesktopEntry.icon;
 +                        return AppSearch.guessIcon(focusedWindow ? focusedWindow.class : "");
-                     }
-
-                     Text {
-@@ -659,45 +627,15 @@
-                         height: workspaceButtonWidth
-                         opacity: !Config.workspaces.showAppIcons ? 0 : (workspaceButtonBackgroundVert.focusedWindow && !Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? 1 : workspaceButtonBackgroundVert.focusedWindow ? workspaceIconOpacityShrinked : 0
-                         visible: opacity > 0
+@@ -662 +630 @@ Item {
 -                        IconImage {
 +                        Image {
-                             id: mainAppIconVert
+@@ -664,36 +632,6 @@ Item {
 -                            anchors.bottom: parent.bottom
 -                            anchors.right: parent.right
 -                            anchors.bottomMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
@@ -293,30 +210,19 @@ diff --git a/modules/bar/workspaces/Workspaces.qml b/modules/bar/workspaces/Work
 +                            sourceSize.height: height * 2
 +                            fillMode: Image.PreserveAspectFit
 +                            mipmap: true
-                         }
-
-                         Tinted {
-
-diff --git "a/assets/presets/Ambxst Default/workspaces.json" "b/assets/presets/Ambxst Default/workspaces.json"
---- "a/assets/presets/Ambxst Default/workspaces.json"
-+++ "b/assets/presets/Ambxst Default/workspaces.json"
-@@ -1,7 +1,7 @@
- {
-     "alwaysShowNumbers": false,
-     "dynamic": false,
--    "showAppIcons": true,
-+    "showAppIcons": false,
-     "showNumbers": false,
--    "shown": 10
-+    "shown": 3
- }
+diff --git a/modules/dock/DockAppButton.qml b/modules/dock/DockAppButton.qml
+index 3132417..4240962 100644
+--- a/modules/dock/DockAppButton.qml
++++ b/modules/dock/DockAppButton.qml
+@@ -112,0 +113,3 @@ Button {
++                        // Dock icons are tinted by default; callers may still
++                        // disable tint globally for other shell surfaces.
++                        active: true
 diff --git a/modules/services/GlobalShortcuts.qml b/modules/services/GlobalShortcuts.qml
+index b1aa3be..a33e9fc 100644
 --- a/modules/services/GlobalShortcuts.qml
 +++ b/modules/services/GlobalShortcuts.qml
-@@ -79,6 +79,16 @@
-                 Screenshot.captureMode = "lens";
-                 GlobalStates.screenshotToolVisible = true;
-                 break;
+@@ -81,0 +82,10 @@ QtObject {
 +            case "ocr":
 +                Screenshot.initialize();
 +                Screenshot.captureMode = "ocr";
@@ -327,6 +233,29 @@ diff --git a/modules/services/GlobalShortcuts.qml b/modules/services/GlobalShort
 +                Screenshot.captureMode = "qr";
 +                GlobalStates.screenshotToolVisible = true;
 +                break;
-             case "lockscreen": GlobalStates.lockscreenVisible = true; break;
-             
-             // Media
+diff --git a/modules/shell/ReservationWindows.qml b/modules/shell/ReservationWindows.qml
+index 26da91a..ff434f2 100644
+--- a/modules/shell/ReservationWindows.qml
++++ b/modules/shell/ReservationWindows.qml
+@@ -22,0 +23 @@ Item {
++    property int dockWidth: 0
+@@ -133 +134 @@ Item {
+-            if (dockEnabled && dockPosition === "left" && dockPinned) zone += dockHeight;
++            if (dockEnabled && dockPosition === "left" && dockPinned) zone += dockWidth;
+@@ -169 +170 @@ Item {
+-            if (dockEnabled && dockPosition === "right" && dockPinned) zone += dockHeight;
++            if (dockEnabled && dockPosition === "right" && dockPinned) zone += dockWidth;
+diff --git a/modules/shell/UnifiedShellPanel.qml b/modules/shell/UnifiedShellPanel.qml
+index 028c2dc..c4a90e4 100644
+--- a/modules/shell/UnifiedShellPanel.qml
++++ b/modules/shell/UnifiedShellPanel.qml
+@@ -77 +77,2 @@ PanelWindow {
+-    readonly property int dockHeight: dockContent.dockSize + dockContent.totalMargin
++    readonly property int dockHeight: dockContent.isVertical ? 0 : dockContent.dockSize + dockContent.totalMargin
++    readonly property int dockWidth: dockContent.isVertical ? dockContent.dockSize + dockContent.totalMargin : 0
+diff --git a/shell.qml b/shell.qml
+index 888996d..b78cedb 100644
+--- a/shell.qml
++++ b/shell.qml
+@@ -112,0 +113 @@ ShellRoot {
++                dockWidth: unifiedPanel.dockWidth
