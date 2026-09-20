@@ -94,76 +94,6 @@ index 83464b5..94e4495 100644
 
              SysTrayItem {
                  required property SystemTrayItem modelData
-diff --git a/modules/bar/workspaces/Workspaces.qml b/modules/bar/workspaces/Workspaces.qml
-index 5a1625c..87d2521 100644
---- a/modules/bar/workspaces/Workspaces.qml
-+++ b/modules/bar/workspaces/Workspaces.qml
-@@ -524,10 +524,7 @@ Item {
-                         visible: opacity > 0
-                         IconImage {
-                             id: mainAppIcon
--                            anchors.bottom: parent.bottom
--                            anchors.right: parent.right
--                            anchors.bottomMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
--                            anchors.rightMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
-+                            anchors.centerIn: parent
-
-                             source: workspaceButtonBackground.mainAppIconSource
-                             implicitSize: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? workspaceIconSize : workspaceIconSizeShrinked
-@@ -539,20 +536,6 @@ Item {
-                                     easing.type: Easing.OutQuad
-                                 }
-                             }
--                            Behavior on anchors.bottomMargin {
--                                enabled: Config.animDuration > 0
--                                NumberAnimation {
--                                    duration: 150
--                                    easing.type: Easing.OutQuad
--                                }
--                            }
--                            Behavior on anchors.rightMargin {
--                                enabled: Config.animDuration > 0
--                                NumberAnimation {
--                                    duration: 150
--                                    easing.type: Easing.OutQuad
--                                }
--                            }
-                             Behavior on implicitSize {
-                                 enabled: Config.animDuration > 0
-                                 NumberAnimation {
-@@ -661,10 +644,7 @@ Item {
-                         visible: opacity > 0
-                         IconImage {
-                             id: mainAppIconVert
--                            anchors.bottom: parent.bottom
--                            anchors.right: parent.right
--                            anchors.bottomMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
--                            anchors.rightMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
-+                            anchors.centerIn: parent
-
-                             source: workspaceButtonBackgroundVert.mainAppIconSource
-                             implicitSize: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? workspaceIconSize : workspaceIconSizeShrinked
-@@ -676,20 +656,6 @@ Item {
-                                     easing.type: Easing.OutQuad
-                                 }
-                             }
--                            Behavior on anchors.bottomMargin {
--                                enabled: Config.animDuration > 0
--                                NumberAnimation {
--                                    duration: 150
--                                    easing.type: Easing.OutQuad
--                                }
--                            }
--                            Behavior on anchors.rightMargin {
--                                enabled: Config.animDuration > 0
--                                NumberAnimation {
--                                    duration: 150
--                                    easing.type: Easing.OutQuad
--                                }
--                            }
-                             Behavior on implicitSize {
-                                 enabled: Config.animDuration > 0
-                                 NumberAnimation {
 diff --git a/modules/shell/ReservationWindows.qml b/modules/shell/ReservationWindows.qml
 index 26da91a..6319251 100644
 --- a/modules/shell/ReservationWindows.qml
@@ -224,3 +154,139 @@ index 888996d..496dec5 100644
                  dockHeight: unifiedPanel.dockHeight
                  containBar: unifiedPanel.containBar
 
+--- a/modules/bar/workspaces/Workspaces.qml
++++ b/modules/bar/workspaces/Workspaces.qml
+@@ -500,7 +500,7 @@
+                         }
+                     }
+                     Rectangle {
+-                        opacity: (Config.workspaces.showNumbers || Config.workspaces.alwaysShowNumbers || (Config.workspaces.showAppIcons && workspaceButtonBackground.focusedWindow)) ? 0 : (((monitor && monitor.activeWorkspace ? monitor.activeWorkspace.id : undefined) == button.workspaceValue) || workspaceOccupied[index] ? 1 : 0.5)
++                        opacity: (Config.workspaces.showNumbers || Config.workspaces.alwaysShowNumbers) ? 0 : (((monitor && monitor.activeWorkspace ? monitor.activeWorkspace.id : undefined) == button.workspaceValue) || workspaceOccupied[index] ? 1 : 0.5)
+                         visible: opacity > 0
+                         anchors.centerIn: parent
+                         width: workspaceButtonWidth * 0.2
+@@ -516,57 +516,6 @@
+                             }
+                         }
+                     }
+-                    Item {
+-                        anchors.centerIn: parent
+-                        width: workspaceButtonWidth
+-                        height: workspaceButtonWidth
+-                        opacity: !Config.workspaces.showAppIcons ? 0 : (workspaceButtonBackground.focusedWindow && !Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? 1 : workspaceButtonBackground.focusedWindow ? workspaceIconOpacityShrinked : 0
+-                        visible: opacity > 0
+-                        IconImage {
+-                            id: mainAppIcon
+-                            anchors.bottom: parent.bottom
+-                            anchors.right: parent.right
+-                            anchors.bottomMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
+-                            anchors.rightMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
+-
+-                            source: workspaceButtonBackground.mainAppIconSource
+-                            implicitSize: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? workspaceIconSize : workspaceIconSizeShrinked
+-
+-                            Behavior on opacity {
+-                                enabled: Config.animDuration > 0
+-                                NumberAnimation {
+-                                    duration: 150
+-                                    easing.type: Easing.OutQuad
+-                                }
+-                            }
+-                            Behavior on anchors.bottomMargin {
+-                                enabled: Config.animDuration > 0
+-                                NumberAnimation {
+-                                    duration: 150
+-                                    easing.type: Easing.OutQuad
+-                                }
+-                            }
+-                            Behavior on anchors.rightMargin {
+-                                enabled: Config.animDuration > 0
+-                                NumberAnimation {
+-                                    duration: 150
+-                                    easing.type: Easing.OutQuad
+-                                }
+-                            }
+-                            Behavior on implicitSize {
+-                                enabled: Config.animDuration > 0
+-                                NumberAnimation {
+-                                    duration: 150
+-                                    easing.type: Easing.OutQuad
+-                                }
+-                            }
+-                        }
+-
+-                        Tinted {
+-                            sourceItem: mainAppIcon
+-                            anchors.fill: mainAppIcon
+-                        }
+-                    }
+                 }
+             }
+         }
+@@ -637,7 +586,7 @@
+                         }
+                     }
+                     Rectangle {
+-                        opacity: (Config.workspaces.showNumbers || Config.workspaces.alwaysShowNumbers || (Config.workspaces.showAppIcons && workspaceButtonBackgroundVert.focusedWindow)) ? 0 : (((monitor && monitor.activeWorkspace ? monitor.activeWorkspace.id : undefined) == buttonVert.workspaceValue) || workspaceOccupied[index] ? 1 : 0.5)
++                        opacity: (Config.workspaces.showNumbers || Config.workspaces.alwaysShowNumbers) ? 0 : (((monitor && monitor.activeWorkspace ? monitor.activeWorkspace.id : undefined) == buttonVert.workspaceValue) || workspaceOccupied[index] ? 1 : 0.5)
+                         visible: opacity > 0
+                         anchors.centerIn: parent
+                         width: workspaceButtonWidth * 0.2
+@@ -653,57 +602,6 @@
+                             }
+                         }
+                     }
+-                    Item {
+-                        anchors.centerIn: parent
+-                        width: workspaceButtonWidth
+-                        height: workspaceButtonWidth
+-                        opacity: !Config.workspaces.showAppIcons ? 0 : (workspaceButtonBackgroundVert.focusedWindow && !Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? 1 : workspaceButtonBackgroundVert.focusedWindow ? workspaceIconOpacityShrinked : 0
+-                        visible: opacity > 0
+-                        IconImage {
+-                            id: mainAppIconVert
+-                            anchors.bottom: parent.bottom
+-                            anchors.right: parent.right
+-                            anchors.bottomMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
+-                            anchors.rightMargin: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? Math.round((workspaceButtonWidth - workspaceIconSize) / 2) : workspaceIconMarginShrinked
+-
+-                            source: workspaceButtonBackgroundVert.mainAppIconSource
+-                            implicitSize: (!Config.workspaces.alwaysShowNumbers && Config.workspaces.showAppIcons) ? workspaceIconSize : workspaceIconSizeShrinked
+-
+-                            Behavior on opacity {
+-                                enabled: Config.animDuration > 0
+-                                NumberAnimation {
+-                                    duration: 150
+-                                    easing.type: Easing.OutQuad
+-                                }
+-                            }
+-                            Behavior on anchors.bottomMargin {
+-                                enabled: Config.animDuration > 0
+-                                NumberAnimation {
+-                                    duration: 150
+-                                    easing.type: Easing.OutQuad
+-                                }
+-                            }
+-                            Behavior on anchors.rightMargin {
+-                                enabled: Config.animDuration > 0
+-                                NumberAnimation {
+-                                    duration: 150
+-                                    easing.type: Easing.OutQuad
+-                                }
+-                            }
+-                            Behavior on implicitSize {
+-                                enabled: Config.animDuration > 0
+-                                NumberAnimation {
+-                                    duration: 150
+-                                    easing.type: Easing.OutQuad
+-                                }
+-                            }
+-                        }
+-
+-                        Tinted {
+-                            sourceItem: mainAppIconVert
+-                            anchors.fill: mainAppIconVert
+-                        }
+-                    }
+                 }
+             }
+         }
