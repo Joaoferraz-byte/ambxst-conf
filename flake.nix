@@ -49,18 +49,19 @@
             src = ambxst;
             patches = [ ./patches/livara-defaults.patch ];
           };
-          ambxstBasePackage = import "${ambxstPatched}/nix/packages" {
+          ambxstBasePackage = import "${ambxst}/nix/packages" {
             inherit pkgs lib system;
             axctl = axctlFixed;
-            self = ambxstPatched;
+            self = ambxst.outPath;
             version = "1.3.7";
           };
           ambxstPackage = pkgs.runCommand "Ambxst-1.3.7" {
-            nativeBuildInputs = [ pkgs.makeWrapper ];
             meta.mainProgram = "ambxst";
           } ''
-            mkdir -p "$out/bin"
-            makeWrapper "${ambxstBasePackage}/bin/ambxst" "$out/bin/ambxst"
+            cp -a ${ambxstBasePackage}/. "$out/"
+            rm -f "$out/bin/ambxst"
+            cp ${ambxstBasePackage}/bin/ambxst "$out/bin/ambxst"
+            sed -i 's|^export AMBXST_SHELL=.*|export AMBXST_SHELL="${ambxstPatched}"|' "$out/bin/ambxst"
           '';
         in {
           default = ambxstPackage;
