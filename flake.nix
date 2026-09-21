@@ -49,10 +49,10 @@
             src = ambxst;
             patches = [ ./patches/livara-defaults.patch ];
           };
-          ambxstBasePackage = import "${ambxstPatched}/nix/packages" {
+          ambxstBasePackage = import "${ambxst}/nix/packages" {
             inherit pkgs lib system;
             axctl = axctlFixed;
-            self = ambxstPatched;
+            self = ambxst.outPath;
             version = "1.3.7";
           };
           ambxstPackage = pkgs.runCommand "Ambxst-1.3.7" {
@@ -86,6 +86,11 @@
       homeModules.default = { config, lib, pkgs, ... }:
         let
           ambxstPackage = fixedPackages.${pkgs.stdenv.hostPlatform.system}.default;
+          ambxstPatched = pkgs.applyPatches {
+            name = "ambxst-livara-shell-home-module";
+            src = ambxst;
+            patches = [ ./patches/livara-defaults.patch ];
+          };
           ambxstDefaultPreset = "${ambxstPatched}/assets/presets/Ambxst Default";
           paletteBridge = pkgs.writeShellApplication {
             name = "livara-ambxst-palette-bridge";
