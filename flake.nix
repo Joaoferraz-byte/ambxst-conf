@@ -190,6 +190,10 @@
           chmod -R u+w source
           cd source
           git apply --check --unidiff-zero ${self}/patches/livara-defaults.patch
+          test "$(grep -c 'source: workspaceButtonBackground.mainAppIconSource' modules/bar/workspaces/Workspaces.qml)" -eq 1
+          test "$(grep -c 'source: workspaceButtonBackgroundVert.mainAppIconSource' modules/bar/workspaces/Workspaces.qml)" -eq 1
+          test "$(grep -c 'implicitSize: (!Config.workspaces.alwaysShowNumbers' modules/bar/workspaces/Workspaces.qml)" -eq 2
+          ! grep -q 'mainAppIconName' modules/bar/workspaces/Workspaces.qml
           touch "$out"
         '';
 
