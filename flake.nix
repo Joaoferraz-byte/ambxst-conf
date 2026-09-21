@@ -9,7 +9,7 @@
       inputs.axctl.url = "github:Axenide/axctl/dedcaa6769a577b0a0ea767631f5f4ec317fff59";
     };
     shell-conf = {
-      url = "github:Joaoferraz-byte/shell-conf/eb44268704cac46b8cb81befa7b86a1e329011e2";
+      url = "github:Joaoferraz-byte/shell-conf/31ca7536b894050350c3774a02a7f1d6be798198";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -49,10 +49,10 @@
             src = ambxst;
             patches = [ ./patches/livara-defaults.patch ];
           };
-          ambxstBasePackage = import "${ambxst}/nix/packages" {
+          ambxstBasePackage = import "${ambxstPatched}/nix/packages" {
             inherit pkgs lib system;
             axctl = axctlFixed;
-            self = ambxst.outPath;
+            self = ambxstPatched;
             version = "1.3.7";
           };
           ambxstPackage = pkgs.runCommand "Ambxst-1.3.7" {
@@ -86,7 +86,7 @@
       homeModules.default = { config, lib, pkgs, ... }:
         let
           ambxstPackage = fixedPackages.${pkgs.stdenv.hostPlatform.system}.default;
-          ambxstDefaultPreset = "${ambxst}/assets/presets/Ambxst Default";
+          ambxstDefaultPreset = "${ambxstPatched}/assets/presets/Ambxst Default";
           paletteBridge = pkgs.writeShellApplication {
             name = "livara-ambxst-palette-bridge";
             runtimeInputs = with pkgs; [ bash coreutils jq ];
@@ -97,7 +97,8 @@
           home.packages = [ ambxstPackage paletteBridge ];
           home.sessionVariables = {
             AMBXST_VERSION = "1.3.7";
-            LIVARA_AMBXST_THEME_ROOT = "${config.home.homeDirectory}/.cache/ambxst";
+            AMBXST_COLORS_SOURCE = "${config.home.homeDirectory}/.cache/ambxst/colors.json";
+            LIVARA_THEME_ROOT = "${config.xdg.stateHome}/livara/theme";
           };
           # Ambxst persists dock preferences outside the Nix store. Seed only
           # the Livara policy and merge it with existing user preferences so
@@ -185,11 +186,20 @@
             Service = {
               Type = "oneshot";
               ExecStart = "${paletteBridge}/bin/livara-ambxst-palette-bridge";
+              Environment = [
+                "HOME=${config.home.homeDirectory}"
+                "XDG_CONFIG_HOME=${config.xdg.configHome}"
+                "XDG_DATA_HOME=${config.xdg.dataHome}"
+                "XDG_STATE_HOME=${config.xdg.stateHome}"
+                "AMBXST_COLORS_SOURCE=${config.home.homeDirectory}/.cache/ambxst/colors.json"
+                "LIVARA_THEME_ROOT=${config.xdg.stateHome}/livara/theme"
+              ];
             };
             Install.WantedBy = [ "graphical-session.target" ];
           };
           systemd.user.paths.livara-ambxst-palette-bridge = {
             Path = {
+              PathExists = "${config.home.homeDirectory}/.cache/ambxst/colors.json";
               PathChanged = "${config.home.homeDirectory}/.cache/ambxst/colors.json";
               Unit = "livara-ambxst-palette-bridge.service";
             };
@@ -215,10 +225,14 @@
         '';
 
         bridge-script = pkgs.runCommand "ambxst-palette-bridge-check" {
-          nativeBuildInputs = [ pkgs.bash ];
+          nativeBuildInputs = with pkgs; [ bash coreutils jq ];
         } ''
           bash -n ${self}/scripts/ambxst-palette-bridge.sh
+          bash ${self}/tests/test-palette-bridge.sh
           test -s ${self}/README.md
+          test "$(grep -c 'palette.dark.json' ${self}/scripts/ambxst-palette-bridge.sh)" -ge 1
+          test "$(grep -c 'browser/firefox.css' ${self}/scripts/ambxst-palette-bridge.sh)" -eq 0
+          test "$(grep -c 'Ambxst.toml' ${self}/scripts/ambxst-palette-bridge.sh)" -eq 1
           touch "$out"
         '';
       });

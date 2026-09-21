@@ -166,9 +166,8 @@ index 3132417..4240962 100644
 --- a/modules/dock/DockAppButton.qml
 +++ b/modules/dock/DockAppButton.qml
 @@ -112,0 +113,3 @@ Button {
-+                        // Dock icons are tinted by default; callers may still
-+                        // disable tint globally for other shell surfaces.
-+                        active: true
++                        // Keep dock tinting consistent with the global shell policy.
++                        active: Config.tintIcons
 diff --git a/modules/services/GlobalShortcuts.qml b/modules/services/GlobalShortcuts.qml
 index b1aa3be..a33e9fc 100644
 --- a/modules/services/GlobalShortcuts.qml

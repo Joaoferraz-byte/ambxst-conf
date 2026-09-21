@@ -22,16 +22,18 @@ O upstream é consumido no commit `7f0ac49b82497c6d273f7cd7e49d302904f440ed`, co
 O Ambxst gera `~/.local/share/ambxst/niri.kdl` através do `axctl`. Esse arquivo não deve ser editado diretamente. O `nix-conf` deve manter o include no `~/.config/niri/config.kdl`:
 
 ```kdl
-include optional "~/.local/share/ambxst/niri.kdl"
+include optional=true "~/.local/share/ambxst/niri.kdl"
 ```
 
 Overrides locais continuam no `config.kdl`, depois do include. Não use `ambxst install niri` em uma configuração administrada pelo Nix, porque o instalador é imperativo.
 
 ## Tema
 
-O módulo instala uma ponte de leitura que observa `~/.cache/ambxst/colors.json` e produz `palette.dark.json` em `$XDG_STATE_HOME/livara/theme`. O `shell-conf` consome essa saída para gerar adapters de aplicações. O Ambxst continua sendo o único escritor de `colors.json`; o shell-conf não altera a configuração do Ambxst.
+O módulo instala uma ponte de leitura que observa `~/.cache/ambxst/colors.json` e produz `palette.dark.json` e `palette.json` em `$XDG_STATE_HOME/livara/theme`. A ponte preserva os campos Material do Ambxst e acrescenta aliases semânticos validados para os adapters Livara. O serviço fixa `HOME` e os diretórios XDG, rejeita JSON incompleto ou cores inválidas e mantém o último estado válido por meio de replace atômico.
 
-A ponte é deliberadamente limitada a cores semânticas estáveis. Valores ausentes recebem fallback Livara e a escrita é atômica. O serviço não executa se o arquivo de origem ainda não existir.
+O `shell-conf` é o único owner do `browser/firefox.css` e dos demais adapters de aplicações. O bridge do Ambxst permanece owner do `wezterm/colors/Ambxst.toml`, porque o módulo WezTerm apenas seleciona e observa esse arquivo. O Ambxst continua sendo o único escritor de `colors.json`; o shell-conf não altera a configuração do Ambxst.
+
+A ponte não mascara campos obrigatórios ausentes com uma cor fixa. Se `colors.json` ainda não existir, o serviço aguarda a fonte; se o documento for inválido, preserva o último output válido e registra a falha.
 
 ## Ativação
 
