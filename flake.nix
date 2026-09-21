@@ -124,6 +124,21 @@
                 rm -f "$workspaces_file.tmp"
               fi
 
+              # Ambxst stores compositor-independent defaults in binds.json;
+              # remove stale defaults that conflict with the Niri contract.
+              binds_file="$ambxst_config_dir/binds.json"
+              if [ -s "$binds_file" ] && jq -e . "$binds_file" >/dev/null 2>&1; then
+                jq '
+                  if .ambxst then del(.ambxst.tmux) else . end
+                  | if .custom then .custom = [ .custom[] |
+                      select(.name != "Close Window" or
+                        (([.keys[]? | ((.modifiers // []) == ["SUPER"] and .key == "C")] | any) | not))
+                    ] else . end
+                ' "$binds_file" > "$binds_file.tmp"
+                install -m 0644 "$binds_file.tmp" "$binds_file"
+                rm -f "$binds_file.tmp"
+              fi
+
               dock_dir="${config.xdg.configHome}/ambxst/config"
               dock_file="$dock_dir/dock.json"
               pinned_dir="${config.xdg.dataHome}/ambxst"
