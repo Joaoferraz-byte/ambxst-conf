@@ -165,7 +165,7 @@ diff --git a/modules/dock/DockAppButton.qml b/modules/dock/DockAppButton.qml
 index 3132417..4240962 100644
 --- a/modules/dock/DockAppButton.qml
 +++ b/modules/dock/DockAppButton.qml
-@@ -112,0 +113,3 @@ Button {
+@@ -112,0 +113,2 @@ Button {
 +                        // Keep dock tinting consistent with the global shell policy.
 +                        active: Config.tintIcons
 diff --git a/modules/services/GlobalShortcuts.qml b/modules/services/GlobalShortcuts.qml
