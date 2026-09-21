@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    ambxst.url = "github:Axenide/Ambxst/c62a7acc443dbb1c9045e83466402528cc522af2";
+    ambxst.url = "github:Axenide/Ambxst/2a704c438ddc0b94a11f4e4cf32a16220b62141f";
     ambxst.inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -37,7 +37,7 @@
       checks = forAllSystems ({ pkgs }: {
         integration-contract = pkgs.runCommand "ambxst-integration-contract" { } ''
           test -f ${./flake.nix}
-          grep -Fq 'c62a7acc443dbb1c9045e83466402528cc522af2' ${./flake.nix}
+          grep -Fq '2a704c438ddc0b94a11f4e4cf32a16220b62141f' ${./flake.nix}
           grep -Fq 'homeModules.default' ${./flake.nix}
           ! grep -Eq 'patches/|run.*ocr|run.*qr|noctalia' ${./flake.nix}
           touch $out
