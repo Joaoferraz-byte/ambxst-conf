@@ -166,17 +166,17 @@
         "noctalia-conf": "noctalia-conf"
       },
       "locked": {
-        "lastModified": 1789978403,
-        "narHash": "sha256-ox8GxHwmuevnAD4XjGt6YzdNL/n5PXXvQhQR9HVQg7o=",
+        "lastModified": 1789980022,
+        "narHash": "sha256-MiEp1z4DHXSQoOHckZHB/W3B87iPPk8PgmM+7Yfl2sU=",
         "owner": "Joaoferraz-byte",
         "repo": "shell-conf",
-        "rev": "31ca7536b894050350c3774a02a7f1d6be798198",
+        "rev": "155126e37bbf77bdcf76dbd300f9d7a2f6c41b17",
         "type": "github"
       },
       "original": {
         "owner": "Joaoferraz-byte",
         "repo": "shell-conf",
-        "rev": "31ca7536b894050350c3774a02a7f1d6be798198",
+        "rev": "155126e37bbf77bdcf76dbd300f9d7a2f6c41b17",
         "type": "github"
       }
     }
