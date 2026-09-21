@@ -44,24 +44,23 @@
               vendorHash = "sha256-4PUs37IRhUPtuXi4KU8wOUErIkVlcnaoj94zBDBsMdk=";
             };
           };
-          ambxstBasePackage = import "${ambxst}/nix/packages" {
-            inherit pkgs lib system;
-            axctl = axctlFixed;
-            self = ambxst.outPath;
-            version = "1.3.7";
-          };
           ambxstPatched = pkgs.applyPatches {
             name = "ambxst-livara-shell";
             src = ambxst;
             patches = [ ./patches/livara-defaults.patch ];
+          };
+          ambxstBasePackage = import "${ambxstPatched}/nix/packages" {
+            inherit pkgs lib system;
+            axctl = axctlFixed;
+            self = ambxstPatched;
+            version = "1.3.7";
           };
           ambxstPackage = pkgs.runCommand "Ambxst-1.3.7" {
             nativeBuildInputs = [ pkgs.makeWrapper ];
             meta.mainProgram = "ambxst";
           } ''
             mkdir -p "$out/bin"
-            makeWrapper "${ambxstBasePackage}/bin/ambxst" "$out/bin/ambxst" \
-              --set AMBXST_SHELL "${ambxstPatched}"
+            makeWrapper "${ambxstBasePackage}/bin/ambxst" "$out/bin/ambxst"
           '';
         in {
           default = ambxstPackage;
@@ -118,7 +117,7 @@
 
               workspaces_file="$ambxst_config_files/workspaces.json"
               if [ -s "$workspaces_file" ] && jq -e . "$workspaces_file" >/dev/null 2>&1; then
-                jq '.showAppIcons = false | .shown = 3' "$workspaces_file" > "$workspaces_file.tmp"
+                jq '.showAppIcons = true | .shown = 3' "$workspaces_file" > "$workspaces_file.tmp"
                 install -m 0644 "$workspaces_file.tmp" "$workspaces_file"
                 rm -f "$workspaces_file.tmp"
               fi
@@ -134,12 +133,12 @@
 
               if [ -s "$dock_file" ] && jq -e . "$dock_file" >/dev/null 2>&1; then
                 jq --argjson patterns "$ignored_patterns" \
-                  '.ignoredAppRegexes = (((.ignoredAppRegexes // []) + $patterns) | unique)' \
+                  '.ignoredAppRegexes = (((.ignoredAppRegexes // []) + $patterns) | unique) | .pinnedOnStartup = false' \
                   "$dock_file" > "$dock_file.tmp"
               else
                 printf '%s\n' '{"ignoredAppRegexes":["quickshell.*","xdg-desktop-portal.*"]}' > "$dock_file.tmp"
                 jq --argjson patterns "$ignored_patterns" \
-                  '.ignoredAppRegexes = (((.ignoredAppRegexes // []) + $patterns) | unique)' \
+                  '.ignoredAppRegexes = (((.ignoredAppRegexes // []) + $patterns) | unique) | .pinnedOnStartup = false' \
                   "$dock_file.tmp" > "$dock_file.tmp2"
                 mv -f "$dock_file.tmp2" "$dock_file.tmp"
               fi

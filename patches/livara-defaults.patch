@@ -1,19 +1,16 @@
 diff --git "a/assets/presets/Ambxst Default/workspaces.json" "b/assets/presets/Ambxst Default/workspaces.json"
-index fe34399..8d608d8 100644
---- "a/assets/presets/Ambxst Default/workspaces.json"
-+++ "b/assets/presets/Ambxst Default/workspaces.json"
-@@ -1,7 +1,7 @@
- {
-     "alwaysShowNumbers": false,
+index fe34399..81f23a7 100644
+--- a/assets/presets/Ambxst Default/workspaces.json	
++++ b/assets/presets/Ambxst Default/workspaces.json	
+@@ -3,5 +3,5 @@
      "dynamic": false,
--    "showAppIcons": true,
-+    "showAppIcons": false,
+     "showAppIcons": true,
      "showNumbers": false,
 -    "shown": 10
 +    "shown": 3
  }
 diff --git a/modules/bar/BarContent.qml b/modules/bar/BarContent.qml
-index 9d43848..90ea040 100644
+index 9d43848..2bf9e83 100644
 --- a/modules/bar/BarContent.qml
 +++ b/modules/bar/BarContent.qml
 @@ -392,12 +392,15 @@ Item {
@@ -28,7 +25,7 @@ index 9d43848..90ea040 100644
 -                            endRadius: (root.pinButtonVisible) ? root.innerRadius : (root.dockAtStart ? root.innerRadius : root.outerRadius)
 +                        Loader {
 +                            id: layoutSelectorLoader
-+                            active: AxctlService.compositorName !== "niri"
++                            active: false
 +                            sourceComponent: LayoutSelectorButton {
 +                                bar: root
 +                                layerEnabled: root.shadowsEnabled
@@ -48,7 +45,7 @@ index 9d43848..90ea040 100644
 -                                    layerEnabled: root.shadowsEnabled
 +                                Loader {
 +                                    id: layoutSelectorLoaderVert
-+                                    active: AxctlService.compositorName !== "niri"
++                                    active: false
                                      Layout.alignment: Qt.AlignHCenter
 -                                    startRadius: root.outerRadius
 -                                    endRadius: root.innerRadius
@@ -64,10 +61,10 @@ index 9d43848..90ea040 100644
  
                                  Workspaces {
 diff --git a/modules/bar/systray/SysTray.qml b/modules/bar/systray/SysTray.qml
-index 83464b5..75526b8 100644
+index 83464b5..daca2c2 100644
 --- a/modules/bar/systray/SysTray.qml
 +++ b/modules/bar/systray/SysTray.qml
-@@ -8,8 +8,37 @@ import qs.modules.components
+@@ -8,8 +8,39 @@ import qs.modules.components
      variant: "bg"
      id: root
  
@@ -85,7 +82,9 @@ index 83464b5..75526b8 100644
 +        "blueman-manager",
 +        "bluetooth",
 +        "com.github.wwmm.easyeffects",
++        "com.github.wwmm.easyeffects.desktop",
 +        "easyeffects",
++        "easyeffects.desktop",
 +        "easy-effects",
 +        "easy effects",
 +        "easy_effects",
@@ -107,7 +106,7 @@ index 83464b5..75526b8 100644
  
      topLeftRadius: root.vertical ? root.startRadius : root.startRadius
      topRightRadius: root.vertical ? root.startRadius : root.endRadius
-@@ -26,7 +55,7 @@ import qs.modules.components
+@@ -26,7 +57,7 @@ import qs.modules.components
      property bool vertical: bar.orientation === "vertical"
  
      // Hide completely when empty - check both orientations
@@ -116,7 +115,7 @@ index 83464b5..75526b8 100644
  
      // Ajustes de tamaño dinámicos según orientación
      height: vertical ? implicitHeight : parent.height
-@@ -43,7 +72,7 @@ import qs.modules.components
+@@ -43,7 +74,7 @@ import qs.modules.components
  
          Repeater {
              id: rowRepeater
@@ -125,7 +124,7 @@ index 83464b5..75526b8 100644
  
              SysTrayItem {
                  required property SystemTrayItem modelData
-@@ -62,7 +91,7 @@ import qs.modules.components
+@@ -62,7 +93,7 @@ import qs.modules.components
  
          Repeater {
              id: columnRepeater
