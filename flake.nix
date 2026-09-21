@@ -59,6 +59,7 @@
             meta.mainProgram = "ambxst";
           } ''
             cp -a ${ambxstBasePackage}/. "$out/"
+            chmod -R u+w "$out"
             rm -f "$out/bin/ambxst"
             cp ${ambxstBasePackage}/bin/ambxst "$out/bin/ambxst"
             sed -i 's|^export AMBXST_SHELL=.*|export AMBXST_SHELL="${ambxstPatched}"|' "$out/bin/ambxst"
