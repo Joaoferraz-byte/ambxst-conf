@@ -184,11 +184,12 @@
 
       checks = forEachSystem (system: let pkgs = import nixpkgs { inherit system; }; in {
         patch-applies = pkgs.runCommand "ambxst-livara-patch-check" {
-          nativeBuildInputs = [ pkgs.git ];
+          nativeBuildInputs = [ pkgs.git pkgs.patch ];
         } ''
           cp -R --no-preserve=mode ${ambxst}/. source
           chmod -R u+w source
           cd source
+          patch --batch --forward --dry-run -p1 < ${self}/patches/livara-defaults.patch
           git apply --check --unidiff-zero ${self}/patches/livara-defaults.patch
           test "$(grep -c 'source: workspaceButtonBackground.mainAppIconSource' modules/bar/workspaces/Workspaces.qml)" -eq 1
           test "$(grep -c 'source: workspaceButtonBackgroundVert.mainAppIconSource' modules/bar/workspaces/Workspaces.qml)" -eq 1
