@@ -1,0 +1,106 @@
+diff -urN a/modules/bar/BarContent.qml b/modules/bar/BarContent.qml
+--- a/modules/bar/BarContent.qml	2026-09-22 00:18:25.595244192 +0000
++++ b/modules/bar/BarContent.qml	2026-09-22 00:28:44.781396552 +0000
+@@ -392,12 +392,15 @@
+                             endRadius: root.innerRadius
+                         }
+
+-                        LayoutSelectorButton {
+-                            id: layoutSelectorButton
+-                            bar: root
+-                            layerEnabled: root.shadowsEnabled
+-                            startRadius: root.innerRadius
+-                            endRadius: (root.pinButtonVisible) ? root.innerRadius : (root.dockAtStart ? root.innerRadius : root.outerRadius)
++                        Loader {
++                            id: layoutSelectorLoader
++                            active: false
++                            sourceComponent: LayoutSelectorButton {
++                                bar: root
++                                layerEnabled: root.shadowsEnabled
++                                startRadius: root.innerRadius
++                                endRadius: (root.pinButtonVisible) ? root.innerRadius : (root.dockAtStart ? root.innerRadius : root.outerRadius)
++                            }
+                         }
+
+                         // Pin button (horizontal)
+@@ -633,14 +636,17 @@
+                                 width: parent.width
+                                 spacing: 4
+
+-                                LayoutSelectorButton {
+-                                    id: layoutSelectorButtonVert
+-                                    bar: root
+-                                    layerEnabled: root.shadowsEnabled
++                                Loader {
++                                    id: layoutSelectorLoaderVert
++                                    active: false
+                                     Layout.alignment: Qt.AlignHCenter
+-                                    startRadius: root.outerRadius
+-                                    endRadius: root.innerRadius
+-                                    vertical: true
++                                    sourceComponent: LayoutSelectorButton {
++                                        bar: root
++                                        layerEnabled: root.shadowsEnabled
++                                        startRadius: root.outerRadius
++                                        endRadius: root.innerRadius
++                                        vertical: true
++                                    }
+                                 }
+
+                                 Workspaces {
+diff -urN a/modules/bar/systray/SysTray.qml b/modules/bar/systray/SysTray.qml
+--- a/modules/bar/systray/SysTray.qml	2026-09-22 00:18:25.597229797 +0000
++++ b/modules/bar/systray/SysTray.qml	2026-09-22 00:28:44.781899005 +0000
+@@ -21,11 +21,40 @@
+
+     readonly property var allItems: SystemTray.items?.values ?? []
+     readonly property var hiddenIds: StateService.systrayHidden
+-    readonly property var visibleItems: allItems.filter(item => !hiddenIds.includes(item.id))
+-    readonly property var overflowItems: allItems.filter(item => hiddenIds.includes(item.id))
++    readonly property var hiddenItemTokens: [
++        "nm-applet",
++        "nm-connection-editor",
++        "networkmanager",
++        "blueman-applet",
++        "blueman-manager",
++        "bluetooth",
++        "com.github.wwmm.easyeffects",
++        "com.github.wwmm.easyeffects.desktop",
++        "easyeffects",
++        "easyeffects.desktop",
++        "easy-effects",
++        "easy effects",
++        "easy_effects",
++        "pasystray",
++        "volumeicon",
++        "wireplumber"
++    ]
++    function isShellManaged(item) {
++        const fields = [item.id, item.title, item.tooltipTitle, item.icon]
++            .filter(value => value !== undefined && value !== null)
++            .map(value => String(value).toLowerCase());
++        return fields.some(field => hiddenItemTokens.some(token =>
++            field === token || field.includes(token) || field.endsWith("." + token) ||
++            field.endsWith("/" + token) || field.endsWith("-" + token) ||
++            field.endsWith("_" + token)));
++    }
++    readonly property var visibleItems: allItems.filter(item =>
++        !isShellManaged(item) && !hiddenIds.includes(item.id))
++    readonly property var overflowItems: allItems.filter(item =>
++        !isShellManaged(item) && hiddenIds.includes(item.id))
+
+     // The tray collapses to a chevron-only pill while every icon is in the popup
+-    readonly property bool hasItems: allItems.length > 0
++    readonly property bool hasItems: visibleItems.length > 0
+
+     // Menu popup currently opened from an icon inside the overflow popup
+     property var activeChildMenu: null
+@@ -53,7 +82,7 @@
+     }
+
+     // Hide when no tray items
+-    visible: hasItems
++    visible: visibleItems.length > 0
+
+     topLeftRadius: root.vertical ? root.startRadius : root.startRadius
+     topRightRadius: root.vertical ? root.startRadius : root.endRadius
