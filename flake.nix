@@ -30,7 +30,9 @@
           inherit pkgs lib system;
           self = patchedSource;
           axctl = inputs.ambxst.inputs.axctl;
-          version = lib.removeSuffix "\n" (builtins.readFile "${patchedSource}/version");
+          # Keep this static: reading applyPatches output with builtins.readFile
+          # would require import-from-derivation during NixOS evaluation.
+          version = "1.3.8";
         };
 
       packages = forAllSystems ({ pkgs }: {
