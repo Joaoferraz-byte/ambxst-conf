@@ -55,11 +55,6 @@
       homeModules.default = { config, lib, pkgs, ... }:
         let
           ambxstPackage = packages.${pkgs.stdenv.hostPlatform.system}.default;
-          ignoredDockAppPatterns = [
-            "^(nm-applet|nm-connection-editor)$"
-            "^(blueman-applet|blueman-manager)$"
-            "^(com[.]github[.]wwmm[.]easyeffects|easyeffects|easy-effects)$"
-          ];
         in {
           home.packages = [ ambxstPackage ];
 
@@ -72,38 +67,6 @@
               "${config.home.homeDirectory}/.config/niri"
           '';
 
-          # Hide only the special application entries from Ambxst's dock. This
-          # does not stop, uninstall, mask, or disable NetworkManager, Blueman,
-          # Easy Effects, or their desktop applications.
-          home.activation.ambxstSpecialApplicationVisibility = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-            if [ -z "''${DRY_RUN:-}" ]; then
-              dock_file="${config.xdg.configHome}/ambxst/config/dock.json"
-              install -d "$(dirname "$dock_file")"
-              ignored_patterns='${builtins.toJSON ignoredDockAppPatterns}'
-
-              if [ -s "$dock_file" ] && ${pkgs.jq}/bin/jq -e . "$dock_file" >/dev/null 2>&1; then
-                ${pkgs.jq}/bin/jq --argjson patterns "$ignored_patterns" \
-                  '.ignoredAppRegexes = (((.ignoredAppRegexes // []) + $patterns) | unique)' \
-                  "$dock_file" > "$dock_file.tmp"
-              else
-                ${pkgs.jq}/bin/jq -n --argjson patterns "$ignored_patterns" \
-                  '{ignoredAppRegexes: $patterns}' > "$dock_file.tmp"
-              fi
-
-              install -m 0644 "$dock_file.tmp" "$dock_file"
-              rm -f "$dock_file.tmp"
-
-              pinned_file="${config.xdg.dataHome}/ambxst/pinnedapps.json"
-              managed_apps='^(nm-applet|nm-connection-editor|networkmanager|blueman-applet|blueman-manager|bluetooth|com[.]github[.]wwmm[.]easyeffects|easyeffects|easy-effects)$'
-              if [ -s "$pinned_file" ] && ${pkgs.jq}/bin/jq -e . "$pinned_file" >/dev/null 2>&1; then
-                ${pkgs.jq}/bin/jq --arg managed "$managed_apps" \
-                  '.apps = [(.apps // [])[] | select((tostring | test($managed; "i")) | not)]' \
-                  "$pinned_file" > "$pinned_file.tmp"
-                install -m 0644 "$pinned_file.tmp" "$pinned_file"
-                rm -f "$pinned_file.tmp"
-              fi
-            fi
-          '';
         };
 
       checks = forAllSystems ({ pkgs }: {
