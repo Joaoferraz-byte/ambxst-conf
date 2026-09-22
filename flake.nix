@@ -21,13 +21,21 @@
       mkAmbxstPackage = { pkgs, system }:
         let
           lib = pkgs.lib;
+          packageLib = lib // {
+            # The upstream package calls lib.cleanSource on `self`. When self
+            # is applyPatches output, the normal helper performs IFD during
+            # NixOS evaluation. The package only needs the source path here;
+            # the derivation itself can consume the patched source directly.
+            cleanSource = source: source;
+          };
           patchedSource = pkgs.applyPatches {
             name = "ambxst-livara-ui-visibility";
             src = inputs.ambxst;
             patches = [ ./patches/livara-ui-visibility.patch ];
           };
         in import "${inputs.ambxst}/nix/packages/default.nix" {
-          inherit pkgs lib system;
+          inherit pkgs system;
+          lib = packageLib;
           self = patchedSource;
           axctl = inputs.ambxst.inputs.axctl;
           # Keep this static: reading applyPatches output with builtins.readFile
