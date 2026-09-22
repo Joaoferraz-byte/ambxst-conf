@@ -92,6 +92,16 @@
 
               install -m 0644 "$dock_file.tmp" "$dock_file"
               rm -f "$dock_file.tmp"
+
+              pinned_file="${config.xdg.dataHome}/ambxst/pinnedapps.json"
+              managed_apps='^(nm-applet|nm-connection-editor|networkmanager|blueman-applet|blueman-manager|bluetooth|com[.]github[.]wwmm[.]easyeffects|easyeffects|easy-effects)$'
+              if [ -s "$pinned_file" ] && ${pkgs.jq}/bin/jq -e . "$pinned_file" >/dev/null 2>&1; then
+                ${pkgs.jq}/bin/jq --arg managed "$managed_apps" \
+                  '.apps = [(.apps // [])[] | select((tostring | test($managed; "i")) | not)]' \
+                  "$pinned_file" > "$pinned_file.tmp"
+                install -m 0644 "$pinned_file.tmp" "$pinned_file"
+                rm -f "$pinned_file.tmp"
+              fi
             fi
           '';
         };
