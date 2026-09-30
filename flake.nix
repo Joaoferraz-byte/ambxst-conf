@@ -3,7 +3,9 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    ambxst.url = "github:Axenide/Ambxst/2a704c438ddc0b94a11f4e4cf32a16220b62141f";
+    # Track the upstream release line so updates are intentional but no longer
+    # frozen to the old 1.3.8 commit.
+    ambxst.url = "github:Axenide/Ambxst/main";
     ambxst.inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -40,7 +42,7 @@
           axctl = inputs.ambxst.inputs.axctl;
           # Keep this static: reading applyPatches output with builtins.readFile
           # would require import-from-derivation during NixOS evaluation.
-          version = "1.3.8";
+          version = "1.3.9";
         };
 
       packages = forAllSystems ({ pkgs }: {
