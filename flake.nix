@@ -3,9 +3,8 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    # Track the upstream release line so updates are intentional but no longer
-    # frozen to the old 1.3.8 commit.
-    ambxst.url = "github:Axenide/Ambxst/main";
+    # Pin the current upstream release while retaining the local Livara patch.
+    ambxst.url = "github:Axenide/Ambxst/1.4.1";
     ambxst.inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -42,7 +41,7 @@
           axctl = inputs.ambxst.inputs.axctl;
           # Keep this static: reading applyPatches output with builtins.readFile
           # would require import-from-derivation during NixOS evaluation.
-          version = "1.3.9";
+          version = "1.4.1";
         };
 
       packages = forAllSystems ({ pkgs }: {
